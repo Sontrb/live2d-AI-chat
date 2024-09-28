@@ -1,9 +1,4 @@
-import {
-  MutableRefObject,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { MutableRefObject, useEffect, useRef, useState } from "react";
 import { Application } from "@pixi/app";
 // import { Ticker, TickerPlugin } from "@pixi/ticker";
 // import { InteractionManager } from "@pixi/interaction";
@@ -52,21 +47,17 @@ function handleSpeak(audio_link: string, model: Live2DModel) {
 }
 
 // load model to canvas
-function loadModelToCanvas(
-  canvas: MutableRefObject<HTMLElement>,
-  model: Live2DModel,
-  screenSize: ScreenSize
-) {
-  if (!model || !canvas.current) {
-    console.log("no model or no canvas");
+function loadModelTo(stage: MutableRefObject<HTMLElement>, model: Live2DModel) {
+  if (!model || !stage.current) {
+    console.log("no model or no stage");
     return;
   }
   const newCanvas = document.createElement("canvas");
-  canvas.current.appendChild(newCanvas);
+  stage.current.appendChild(newCanvas);
   const app = new Application({
     view: newCanvas,
-    width: screenSize.width,
-    height: screenSize.height,
+    width: stage.current.clientWidth,
+    height: stage.current.clientHeight,
   });
   app.stage.addChild(model);
 
@@ -86,36 +77,33 @@ function loadModelToCanvas(
 
   return () => {
     app.destroy();
-    canvas.current.removeChild(newCanvas);
+    stage.current.removeChild(newCanvas);
   };
 }
 
 function App() {
   const [model, setModel] = useState<Live2DModel>();
-  const canvas = useRef<HTMLElement>(null);
-  const screenSize: ScreenSize = useScreenSize();
+  const stage = useRef<HTMLElement>(null);
 
   // console.log('run motion: ',model.motion('Tap')) // play motion
   // console.log('run expression: ',await model.expression(1)) // play expression
 
+  // load model when init
   useEffect(() => {
     (async () => {
       setModel(await loadModel());
     })();
   }, []);
 
+  // when model loaded, put it to stage
   useEffect(() => {
     if (!model) return;
-    return loadModelToCanvas(canvas, model, screenSize);
-  }, [model, screenSize]);
+    return loadModelTo(stage, model);
+  }, [model]);
 
   return (
     <>
-      <div className="w-screen h-screen">
-        <div ref={canvas} id="canvas"></div>
-      </div>
-      <p>Width: {screenSize.width}</p>
-      <p>Height: {screenSize.height}</p>
+      <div className="w-screen h-screen" ref={stage} id="canvas"></div>
       {model && (
         <button
           onClick={() =>
