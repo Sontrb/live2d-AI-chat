@@ -1,3 +1,6 @@
+# local
+backend/public/sound
+
 # Logs
 logs
 *.log
