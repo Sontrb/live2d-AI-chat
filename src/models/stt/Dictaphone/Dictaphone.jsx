@@ -39,7 +39,7 @@ const Dictaphone = ({ commands, onSpeechRecognized, onUserSpeaking }) => {
 
   return (
     <div style={{ display: "flex", flexDirection: "column" }}>
-      <span>listening: {listening ? "on" : "off"}</span>
+      {/* <span>listening: {listening ? "on" : "off"}</span>
       <span>transcribing: {transcribing ? "on" : "off"}</span>
       <span>
         clearTranscriptOnListen: {clearTranscriptOnListen ? "on" : "off"}
@@ -48,7 +48,7 @@ const Dictaphone = ({ commands, onSpeechRecognized, onUserSpeaking }) => {
       <button onClick={toggleTranscribing}>Toggle transcribing</button>
       <button onClick={toggleClearTranscriptOnListen}>
         Toggle clearTranscriptOnListen
-      </button>
+      </button> */}
       <span>{transcript}</span>
     </div>
   );

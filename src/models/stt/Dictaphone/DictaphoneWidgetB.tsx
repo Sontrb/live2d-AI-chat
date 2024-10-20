@@ -32,7 +32,7 @@ const DictaphoneWidgetB = ({
 
   return (
     <div>
-      <h3>Dictaphone B</h3>
+      {/* <h3>Dictaphone state: </h3> */}
       <p>{message}</p>
       <Dictaphone
         commands={commands}

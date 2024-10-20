@@ -7,6 +7,7 @@ import Dictaphones from "./models/stt/Dictaphones.tsx";
 import loadModelTo from "./models/live2d/functions/loadModelTo";
 import loadModel from "./models/live2d/functions/loadModel";
 import config from "./config.ts";
+import { twoPointMove } from "./models/live2d/motionMaker/shakeBody.ts";
 
 const apiKey = config.openai_apikey;
 const modelName = config.openai_model_name;
@@ -17,6 +18,24 @@ const chat = new LLMChat(apiKey, modelName, apiBase);
 let userSpeaking = false;
 let reader: object | null = null;
 
+function addToContext(
+  text: string,
+  setContext: (
+    value: React.SetStateAction<
+      {
+        role: string;
+        content: string;
+      }[]
+    >
+  ) => void
+) {
+  setContext((context) => {
+    const lastContent = JSON.parse(JSON.stringify(context[context.length - 1]));
+    lastContent.content = lastContent.content + text;
+    return [...context.slice(0, context.length - 1), lastContent];
+  });
+}
+
 function App() {
   const [model, setModel] = useState<Live2DModel>();
   const stage = useRef(null);
@@ -26,9 +45,7 @@ function App() {
       content: string;
     }>
   >([]);
-
-  // console.log('run motion: ',model.motion('Tap')) // play motion
-  // console.log('run expression: ',await model.expression(1)) // play expression
+  const expressionInput = useRef<HTMLInputElement>(null);
 
   // load model when init
   useEffect(() => {
@@ -43,6 +60,7 @@ function App() {
     return loadModelTo(stage, model);
   }, [model]);
 
+  // after user speak
   async function handleSpeechRecognized(
     context: {
       role: string;
@@ -53,7 +71,7 @@ function App() {
     if (!model) return;
     const stream = await chat.ask(context);
     reader = stream;
-    setContext((context) => [...context, { role: "assistant", content: "" }])
+    setContext((context) => [...context, { role: "assistant", content: "" }]);
     let currentSentence = "";
     for await (const chunk of reader) {
       const llmResponse = chunk.choices[0]?.delta?.content;
@@ -64,7 +82,7 @@ function App() {
       }
       currentSentence += llmResponse;
       if (/[.,!?]$/.test(currentSentence)) {
-        addToContext(currentSentence);
+        addToContext(currentSentence, setContext);
         const data = await textToSpeech(currentSentence, "tts");
         const url = await data.text();
         await handleSpeak(url, model);
@@ -72,7 +90,7 @@ function App() {
       }
     }
     if (reader && currentSentence !== "") {
-      addToContext(currentSentence);
+      addToContext(currentSentence, setContext);
       const data = await textToSpeech(currentSentence, "tts");
       const url = await data.text();
       await handleSpeak(url, model);
@@ -80,17 +98,18 @@ function App() {
     reader = null;
   }
 
+  // when user speak break the ai speak
   async function handleUserSpeaking(text: string) {
     if (!model) return;
     userSpeaking = true;
     model.stopSpeaking();
     if (reader) {
-      addToContext("[break by user]");
+      addToContext("[break by user]", setContext);
       reader = null;
     }
   }
 
-  // speak
+  // ai speak
   async function handleSpeak(audio_link: string, model: Live2DModel) {
     if (model === null || model === undefined) {
       return;
@@ -149,47 +168,107 @@ function App() {
     // });
   }
 
-  function addToContext(text: string) {
-    setContext((context) => {
-      const lastContent = JSON.parse(
-        JSON.stringify(context[context.length - 1])
-      );
-      lastContent.content = lastContent.content + text;
-      return [...context.slice(0, context.length - 1), lastContent];
-    });
-  }
-
   return (
     <>
       <div className="w-screen h-screen" ref={stage} id="canvas"></div>
-      {/* {model && (
-        <button
-          onClick={async () => {
-            const data = await textToSpeech("hello word", "tts");
-            const url = await data.text();
-            handleSpeak(url, model);
-          }}
-        >
-          context speaking
-        </button>
-      )} */}
       {model && (
-        <Dictaphones
-          onSpeechRecognized={(text: string) => {
-            setContext((context) => [
-              ...context,
-              { role: "user", content: text },
-            ]);
-            handleSpeechRecognized([
-              ...context,
-              { role: "user", content: text },
-            ]);
-          }}
-          onUserSpeaking={(text: string) => {
-            handleUserSpeaking(text);
-          }}
-        />
+        <div className="flex place-content-between">
+          <div id="test buttons" className="w-1/2 flex gap-2 flex-wrap">
+            <button
+              className="bg-gray-200 rounded-sm"
+              onClick={async () => {
+                const data = await textToSpeech("hello word", "tts");
+                const url = await data.text();
+                handleSpeak(url, model);
+              }}
+            >
+              test speaking
+            </button>
+            <button
+              className="bg-gray-200 rounded-sm"
+              onClick={async () => {
+                model.motion("default", 0).catch((e) => console.error(e));
+              }}
+            >
+              run motion-default
+            </button>
+            <button
+              className="bg-gray-200 rounded-sm"
+              onClick={async () => {
+                model.motion("wave", 0).catch((e) => console.error(e));
+              }}
+            >
+              run motion-wave
+            </button>
+            <button
+              className="bg-gray-200 rounded-sm"
+              onClick={async () => {
+                model.motion("flirt", 0).catch((e) => console.error(e));
+              }}
+            >
+              run motion-flirt
+            </button>
+            <br />
+            <input
+              type="text"
+              className="bg-gray-200 rounded-sm"
+              id="input"
+              placeholder="input expression name"
+              ref={expressionInput}
+            />
+            <button
+              className="bg-gray-200 rounded-sm"
+              onClick={async () => {
+                // use the data in input
+                if (expressionInput.current) {
+                  const expressionName = expressionInput.current.value;
+                  model
+                    .expression(Number(expressionName))
+                    .catch((e) => console.error(e));
+                }
+              }}
+            >
+              run expression
+            </button>
+            <button
+              className="bg-gray-200 rounded-sm"
+              onClick={async () => {
+                // use the data in input
+                if (expressionInput.current) {
+                  // const expressionName = expressionInput.current.value;
+                  let motion = model.internalModel.motionManager.createMotion(
+                    twoPointMove(),
+                    "app",
+                    "temp1"
+                  );
+                  model.internalModel.motionManager._startMotion(motion);
+                }
+              }}
+            >
+              run ParamAngleZ
+            </button>
+          </div>
+
+          <div className="w-1/2">
+            <Dictaphones
+              onSpeechRecognized={(text: string) => {
+                setContext((context) => [
+                  ...context,
+                  { role: "user", content: text },
+                ]);
+                handleSpeechRecognized([
+                  ...context,
+                  { role: "user", content: text },
+                ]);
+              }}
+              onUserSpeaking={(text: string) => {
+                handleUserSpeaking(text);
+              }}
+            />
+          </div>
+        </div>
       )}
+
       <ul>
         {context.map((e) => {
           return (

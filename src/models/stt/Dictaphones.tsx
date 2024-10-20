@@ -28,7 +28,7 @@ export default function Dictaphones({
     <div>
       <DictaphoneWidgetB onSpeechRecognized={onSpeechRecognized} onUserSpeaking={onUserSpeaking} />
       <div className="flex gap-6">
-        {/* <button onClick={listenOnce}>Listen once</button> */}
+        <button onClick={listenOnce}>Listen once</button>
         <button
           onClick={() => {
             setIsActivating(true);

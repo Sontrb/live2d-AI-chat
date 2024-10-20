@@ -4,7 +4,6 @@ export default class LLMChat {
   private apiKey: string;
   private modelName: string;
   private apiBase: string;
-  private answer: string;
   private client: OpenAI;
 
   constructor(apiKey: string, modelName: string, apiBase: string) {

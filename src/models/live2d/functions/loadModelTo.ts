@@ -19,16 +19,16 @@ function loadModelTo(stage: MutableRefObject<HTMLElement>, model: Live2DModel) {
 
   model.interactive = false; // disable mouse interaction
   // interaction
-  model.on("hit", (hitAreas) => {
-    if (hitAreas.includes("body")) {
-      model.motion("Tap");
-    }
-  });
+  // model.on("hit", (hitAreas) => {
+  //   if (hitAreas.includes("body")) {
+  //     model.motion("Tap");
+  //   }
+  // });
 
   // resize
   const scaleX = newCanvas.width / model.width;
   const scaleY = newCanvas.height / model.height;
-  model.scale.set(Math.min(scaleX, scaleY));
+  model.scale.set(Math.min(scaleX, scaleY)*2);
   model.x = newCanvas.width / 2 - model.width / 2;
 
   return () => {
