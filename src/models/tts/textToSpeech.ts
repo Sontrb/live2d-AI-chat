@@ -1,5 +1,8 @@
+import config from "../../config";
+
+
 export default async function (input: string, model = "tts") {
-  const url = "http://localhost:3000/tts";
+  const url =  config.backend_endpoint + "/tts";
   const headers = {
     "Content-Type": "application/json",
   };

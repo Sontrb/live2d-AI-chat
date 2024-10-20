@@ -1,38 +1,54 @@
+import OpenAI from "openai";
+
 export default class LLMChat {
-  constructor(apiKey, modelName, apiBase = "http://localhost:11434/v1") {
+  private apiKey: string;
+  private modelName: string;
+  private apiBase: string;
+  private answer: string;
+  private client: OpenAI;
+
+  constructor(apiKey: string, modelName: string, apiBase: string) {
     this.apiKey = apiKey;
     this.modelName = modelName;
-    this.context = [];
     this.apiBase = apiBase;
+    this.answer = "";
+    this.client = new OpenAI({
+      apiKey: `${this.apiKey}`,
+      baseURL: `${this.apiBase}`,
+      dangerouslyAllowBrowser: true,
+    });
   }
 
-  async ask(question) {
-    // 将问题添加到上下文
-    this.context.push({ role: "user", content: question });
-
-    // 构造请求数据
+  async ask(
+    context: {
+      role: string;
+      content: string;
+    }[]
+  ) {
     const data = {
       model: this.modelName,
-      messages: this.context,
+      messages: context,
+      stream: true,
     };
 
-    // 发送请求
-    const response = await fetch(`${this.apiBase}/chat/completions`, {
-      method: "POST",
+    const stream = await this.client.chat.completions.create(data, {
       headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${this.apiKey}`,
+        "x-stainless-retry-count": null,
       },
-      body: JSON.stringify(data),
     });
 
-    // 处理响应
-    const result = await response.json();
-    const answer = result.choices[0].message.content;
+    // const newStream = new ReadableStream<string>({
+    //   start: async (controller) => {
+    //     this.answer = "";
 
-    // 将答案添加到上下文
-    this.context.push({ role: "assistant", content: answer });
+    //     for await (const chunk of stream) {
+    //       const content = chunk.choices[0]?.delta?.content;
+    //       this.answer += content;
+    //       controller.enqueue(content || undefined);
+    //     }
+    //   },
+    // });
 
-    return answer;
+    return stream;
   }
 }

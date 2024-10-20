@@ -4,10 +4,10 @@ import SpeechRecognition from "react-speech-recognition";
 
 export default function Dictaphones({
   onSpeechRecognized,
-  startSignal,
+  onUserSpeaking,
 }: {
   onSpeechRecognized: (transcript: string) => void;
-  startSignal?: boolean;
+  onUserSpeaking: (transcript: string) => void;
 }) {
   const [isActivating, setIsActivating] = useState(false);
 
@@ -24,15 +24,9 @@ export default function Dictaphones({
   const listenOnce = () =>
     SpeechRecognition.startListening({ continuous: false });
 
-  useEffect(() => {
-    if (isActivating) {
-      listenContinuously();
-    }
-  }, [startSignal]);
-
   return (
     <div>
-      <DictaphoneWidgetB onSpeechRecognized={onSpeechRecognized} />
+      <DictaphoneWidgetB onSpeechRecognized={onSpeechRecognized} onUserSpeaking={onUserSpeaking} />
       <div className="flex gap-6">
         {/* <button onClick={listenOnce}>Listen once</button> */}
         <button

@@ -80,7 +80,6 @@ function generateMP3(text, outputDir) {
 }
 
 export async function textToSpeech(text) {
-  // 示例用法
   const data = await generateMP3(text, outputDirectory).catch((error) => {
     console.error("Error:", error);
   });

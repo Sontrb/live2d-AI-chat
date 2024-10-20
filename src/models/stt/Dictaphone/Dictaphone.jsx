@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useSpeechRecognition } from "react-speech-recognition";
 
-const Dictaphone = ({ commands, onSpeechRecognized }) => {
+const Dictaphone = ({ commands, onSpeechRecognized, onUserSpeaking }) => {
   const [transcribing, setTranscribing] = useState(true);
   const [clearTranscriptOnListen, setClearTranscriptOnListen] = useState(true);
   const toggleTranscribing = () => setTranscribing(!transcribing);
@@ -20,6 +20,7 @@ const Dictaphone = ({ commands, onSpeechRecognized }) => {
   useEffect(() => {
     if (interimTranscript !== "") {
       console.log("Got interim result:", interimTranscript);
+      onUserSpeaking(interimTranscript);
     }
     if (finalTranscript !== "") {
       console.log("Got final result:", finalTranscript);

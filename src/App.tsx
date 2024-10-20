@@ -1,69 +1,31 @@
 import "regenerator-runtime/runtime"; // https://github.com/JamesBrill/react-speech-recognition/issues/110#issuecomment-1898624289
-import { MutableRefObject, useEffect, useRef, useState } from "react";
-import { Application } from "@pixi/app";
-import { Ticker } from "@pixi/ticker";
+import { useEffect, useRef, useState } from "react";
 import { Live2DModel } from "pixi-live2d-display-lipsyncpatch";
 import textToSpeech from "./models/tts/textToSpeech";
-import VoiceRecorder from "./models/stt/VoiceRecorder";
 import LLMChat from "./models/llm/LLMChat";
 import Dictaphones from "./models/stt/Dictaphones.tsx";
+import loadModelTo from "./models/live2d/functions/loadModelTo";
+import loadModel from "./models/live2d/functions/loadModel";
+import config from "./config.ts";
 
-// load model
-async function loadModel(
-  modelName = "./public/assets/haru/haru_greeter_t03.model3.json"
-) {
-  return await Live2DModel.from(modelName, {
-    // register Ticker for model
-    ticker: Ticker.shared,
-  });
-}
-
-// load model to canvas
-function loadModelTo(stage: MutableRefObject<HTMLElement>, model: Live2DModel) {
-  if (!model || !stage.current) {
-    console.log("no model or no stage");
-    return;
-  }
-  const newCanvas = document.createElement("canvas");
-  stage.current.appendChild(newCanvas);
-  const app = new Application({
-    view: newCanvas,
-    width: stage.current.clientWidth,
-    height: stage.current.clientHeight,
-  });
-  app.stage.addChild(model);
-
-  model.interactive = false; // disable mouse interaction
-  // interaction
-  model.on("hit", (hitAreas) => {
-    if (hitAreas.includes("body")) {
-      model.motion("Tap");
-    }
-  });
-
-  // resize
-  const scaleX = newCanvas.width / model.width;
-  const scaleY = newCanvas.height / model.height;
-  model.scale.set(Math.min(scaleX, scaleY));
-  model.x = newCanvas.width / 2 - model.width / 2;
-
-  return () => {
-    app.destroy();
-    stage.current.removeChild(newCanvas);
-  };
-}
-
-const apiKey = "";
-const modelName = "llama3.2";
-const apiBase = "http://localhost:11434/v1";
+const apiKey = config.openai_apikey;
+const modelName = config.openai_model_name;
+const apiBase = config.openai_endpoint;
 
 const chat = new LLMChat(apiKey, modelName, apiBase);
+
+let userSpeaking = false;
+let reader: object | null = null;
 
 function App() {
   const [model, setModel] = useState<Live2DModel>();
   const stage = useRef(null);
-  const [debug, setDebug] = useState<Array<string>>([]);
-  const [afterLLMSpeachSignal, setAfterLLMSpeachSignal] = useState(false);
+  const [context, setContext] = useState<
+    Array<{
+      role: string;
+      content: string;
+    }>
+  >([]);
 
   // console.log('run motion: ',model.motion('Tap')) // play motion
   // console.log('run expression: ',await model.expression(1)) // play expression
@@ -81,18 +43,55 @@ function App() {
     return loadModelTo(stage, model);
   }, [model]);
 
-  async function handleSpeechRecognized(text: string) {
-    setDebug((debug) => [...debug, "user: " + text]);
-    const llmResponse = await chat.ask(text);
-    setDebug((debug) => [...debug, "llm: " + llmResponse]);
-    const data = await textToSpeech(llmResponse, "tts");
-    const url = await data.text();
-    handleSpeak(url, model);
+  async function handleSpeechRecognized(
+    context: {
+      role: string;
+      content: string;
+    }[]
+  ) {
+    userSpeaking = false;
+    if (!model) return;
+    const stream = await chat.ask(context);
+    reader = stream;
+    setContext((context) => [...context, { role: "assistant", content: "" }])
+    let currentSentence = "";
+    for await (const chunk of reader) {
+      const llmResponse = chunk.choices[0]?.delta?.content;
+      if (userSpeaking) {
+        currentSentence = "";
+        reader = null;
+        break;
+      }
+      currentSentence += llmResponse;
+      if (/[.,!?]$/.test(currentSentence)) {
+        addToContext(currentSentence);
+        const data = await textToSpeech(currentSentence, "tts");
+        const url = await data.text();
+        await handleSpeak(url, model);
+        currentSentence = "";
+      }
+    }
+    if (reader && currentSentence !== "") {
+      addToContext(currentSentence);
+      const data = await textToSpeech(currentSentence, "tts");
+      const url = await data.text();
+      await handleSpeak(url, model);
+    }
+    reader = null;
+  }
+
+  async function handleUserSpeaking(text: string) {
+    if (!model) return;
+    userSpeaking = true;
+    model.stopSpeaking();
+    if (reader) {
+      addToContext("[break by user]");
+      reader = null;
+    }
   }
 
   // speak
-  function handleSpeak(audio_link: string, model: Live2DModel) {
-    console.log("speak");
+  async function handleSpeak(audio_link: string, model: Live2DModel) {
     if (model === null || model === undefined) {
       return;
     }
@@ -103,17 +102,42 @@ function App() {
     const resetExpression = true; // 是否在动画结束后将表情expression重置为默认值 [可选参数，可以为null或空] [true | false] [default: true]
     const crossOrigin = "anonymous"; // 使用不同来源的音频 [可选] [default: null]
 
-    model.speak(audio_link, {
+    function speakWithPromise(
+      audio_link: string,
+      {
+        volume,
+        expression,
+        resetExpression,
+        crossOrigin,
+      }: {
+        volume?: number;
+        expression?: string | number | undefined;
+        resetExpression?: boolean;
+        crossOrigin?: string;
+      }
+    ) {
+      return new Promise<void>((resolve, reject) => {
+        model.speak(audio_link, {
+          volume: volume,
+          expression: expression,
+          resetExpression: resetExpression,
+          crossOrigin: crossOrigin,
+          onFinish: () => {
+            resolve(); // 成功时解析 Promise
+          },
+          onError: (err) => {
+            console.error("Error: ", err);
+            reject(err); // 发生错误时拒绝 Promise
+          },
+        });
+      });
+    }
+
+    await speakWithPromise(audio_link, {
       volume: volume,
       expression: expression,
       resetExpression: resetExpression,
       crossOrigin: crossOrigin,
-      onFinish: () => {
-        setAfterLLMSpeachSignal(!afterLLMSpeachSignal);
-      },
-      onError: (err) => {
-        console.log("Error: ", err);
-      },
     });
 
     // 或者如果您想保留某些默认设置
@@ -125,10 +149,20 @@ function App() {
     // });
   }
 
+  function addToContext(text: string) {
+    setContext((context) => {
+      const lastContent = JSON.parse(
+        JSON.stringify(context[context.length - 1])
+      );
+      lastContent.content = lastContent.content + text;
+      return [...context.slice(0, context.length - 1), lastContent];
+    });
+  }
+
   return (
     <>
       <div className="w-screen h-screen" ref={stage} id="canvas"></div>
-      {model && (
+      {/* {model && (
         <button
           onClick={async () => {
             const data = await textToSpeech("hello word", "tts");
@@ -136,32 +170,36 @@ function App() {
             handleSpeak(url, model);
           }}
         >
-          speak
+          context speaking
         </button>
-      )}
-      {/* {model && (
-        <VoiceRecorder
-          onSpeechRecognized={(text) => {
-            handleSpeechRecognized(text);
-          }}
-          startSignal={afterLLMSpeachSignal}
-        />
       )} */}
       {model && (
         <Dictaphones
           onSpeechRecognized={(text: string) => {
-            handleSpeechRecognized(text);
+            setContext((context) => [
+              ...context,
+              { role: "user", content: text },
+            ]);
+            handleSpeechRecognized([
+              ...context,
+              { role: "user", content: text },
+            ]);
           }}
-          startSignal={afterLLMSpeachSignal}
+          onUserSpeaking={(text: string) => {
+            handleUserSpeaking(text);
+          }}
         />
       )}
       <ul>
-        {debug.map((e) => {
-          return <li key={e}>{e}</li>;
+        {context.map((e) => {
+          return (
+            <li key={e.role + e.content}>
+              {e.role}: {e.content}
+            </li>
+          );
         })}
       </ul>
     </>
   );
 }
-
 export default App;
