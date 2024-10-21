@@ -136,12 +136,14 @@ function App() {
       }
     ) {
       return new Promise<void>((resolve, reject) => {
+        model.motion("Speak").catch((e) => console.error(e));
         model.speak(audio_link, {
           volume: volume,
           expression: expression,
           resetExpression: resetExpression,
           crossOrigin: crossOrigin,
           onFinish: () => {
+            model.motion("Idle").catch((e) => console.error(e));
             resolve(); // 成功时解析 Promise
           },
           onError: (err) => {
@@ -187,26 +189,18 @@ function App() {
             <button
               className="bg-gray-200 rounded-sm"
               onClick={async () => {
-                model.motion("default", 0).catch((e) => console.error(e));
+                model.motion("Idle").catch((e) => console.error(e));
               }}
             >
-              run motion-default
+              run motion-Idle
             </button>
             <button
               className="bg-gray-200 rounded-sm"
               onClick={async () => {
-                model.motion("wave", 0).catch((e) => console.error(e));
+                model.motion("Speak").catch((e) => console.error(e));
               }}
             >
-              run motion-wave
-            </button>
-            <button
-              className="bg-gray-200 rounded-sm"
-              onClick={async () => {
-                model.motion("flirt", 0).catch((e) => console.error(e));
-              }}
-            >
-              run motion-flirt
+              run motion-Speak
             </button>
             <br />
             <input
@@ -236,16 +230,17 @@ function App() {
                 // use the data in input
                 if (expressionInput.current) {
                   // const expressionName = expressionInput.current.value;
-                  let motion = model.internalModel.motionManager.createMotion(
-                    twoPointMove(),
-                    "app",
-                    "temp1"
-                  );
-                  model.internalModel.motionManager._startMotion(motion);
+                  const customMotion =
+                    model.internalModel.motionManager.createMotion(
+                      twoPointMove(),
+                      "app",
+                      "temp1"
+                    );
+                  model.internalModel.motionManager._startMotion(customMotion);
                 }
               }}
             >
-              run ParamAngleZ
+              run CustomMotion
             </button>
           </div>
 

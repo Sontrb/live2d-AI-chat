@@ -24,6 +24,7 @@ const Dictaphone = ({ commands, onSpeechRecognized, onUserSpeaking }) => {
     }
     if (finalTranscript !== "") {
       console.log("Got final result:", finalTranscript);
+      debugger
       onSpeechRecognized(finalTranscript);
       resetTranscript();
     }

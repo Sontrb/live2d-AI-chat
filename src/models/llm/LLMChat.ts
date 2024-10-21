@@ -10,7 +10,6 @@ export default class LLMChat {
     this.apiKey = apiKey;
     this.modelName = modelName;
     this.apiBase = apiBase;
-    this.answer = "";
     this.client = new OpenAI({
       apiKey: `${this.apiKey}`,
       baseURL: `${this.apiBase}`,
@@ -28,6 +27,8 @@ export default class LLMChat {
       model: this.modelName,
       messages: context,
       stream: true,
+      max_completion_tokens: 1024,
+      temperature: 0.75,
     };
 
     const stream = await this.client.chat.completions.create(data, {
@@ -35,18 +36,6 @@ export default class LLMChat {
         "x-stainless-retry-count": null,
       },
     });
-
-    // const newStream = new ReadableStream<string>({
-    //   start: async (controller) => {
-    //     this.answer = "";
-
-    //     for await (const chunk of stream) {
-    //       const content = chunk.choices[0]?.delta?.content;
-    //       this.answer += content;
-    //       controller.enqueue(content || undefined);
-    //     }
-    //   },
-    // });
 
     return stream;
   }
