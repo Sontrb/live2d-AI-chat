@@ -48,6 +48,7 @@ function generateMP3(text, outputDir) {
 
     // 执行 edge-tts 命令
     const edgeTtsProcess = spawn("edge-tts", [
+      "--pitch=+20Hz",
       "--text",
       text,
       "--write-media",

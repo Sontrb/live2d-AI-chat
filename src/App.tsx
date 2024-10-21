@@ -8,6 +8,7 @@ import loadModelTo from "./models/live2d/functions/loadModelTo";
 import loadModel from "./models/live2d/functions/loadModel";
 import config from "./config.ts";
 import { twoPointMove } from "./models/live2d/motionMaker/shakeBody.ts";
+import autoWink from "./models/live2d/expression/autowink.ts";
 
 const apiKey = config.openai_apikey;
 const modelName = config.openai_model_name;
@@ -58,6 +59,18 @@ function App() {
   useEffect(() => {
     if (!model) return;
     return loadModelTo(stage, model);
+  }, [model]);
+
+  // auto wink
+  useEffect(() => {
+    if (!model) return;
+    return autoWink(model);
+  }, [model]);
+
+  // init expression
+  useEffect(() => {
+    if (!model) return;
+    // model.expression('翅膀');
   }, [model]);
 
   // after user speak
@@ -118,7 +131,7 @@ function App() {
     // const audio_link =
     //   "https://cdn.jsdelivr.net/gh/RaSan147/pixi-live2d-display@v1.0.3/playground/test.mp3"; // 音频链接地址 [可选参数，可以为null或空] [相对或完整url路径] [mp3或wav文件]
     const volume = 1; // 声音大小 [可选参数，可以为null或空][0.0-1.0]
-    const expression = 4; // 模型表情 [可选参数，可以为null或空] [index | expression表情名称]
+    const expression = null; // 模型表情 [可选参数，可以为null或空] [index | expression表情名称]
     const resetExpression = true; // 是否在动画结束后将表情expression重置为默认值 [可选参数，可以为null或空] [true | false] [default: true]
     const crossOrigin = "anonymous"; // 使用不同来源的音频 [可选] [default: null]
 
@@ -137,15 +150,17 @@ function App() {
       }
     ) {
       return new Promise<void>((resolve, reject) => {
-        console.log('model start speak')
-        model.motion("Speak", undefined, MotionPriority.FORCE).catch((e) => console.error(e));
+        console.log("model start speak");
+        model
+          .motion("Speak", undefined, MotionPriority.FORCE)
+          .catch((e) => console.error(e));
         model.speak(audio_link, {
           volume: volume,
           expression: expression,
           resetExpression: resetExpression,
           crossOrigin: crossOrigin,
           onFinish: () => {
-            console.log('model stop speak')
+            console.log("model stop speak");
             model.motion("Idle").catch((e) => console.error(e));
             resolve(); // 成功时解析 Promise
           },

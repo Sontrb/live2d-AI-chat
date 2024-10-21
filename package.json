@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "mathjs": "^13.2.0",
     "openai": "^4.68.1",
     "pixi-live2d-display-lipsyncpatch": "0.5.0-ls-7",
     "pixi.js": "^7.0.0",
