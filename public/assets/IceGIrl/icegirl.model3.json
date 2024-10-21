@@ -141,7 +141,7 @@
 					"File": "motions/Idle/Idle_Hiyori_m10.motion3.json"
 				}
 			],
-			"Speak": [
+			"Speak_Special": [
 				{
 					"File": "motions/Speak/Speak_grace_ver5_0102_m05a_good.motion3.json"
 				},
@@ -151,6 +151,23 @@
 				{
 					"File": "motions/Speak/Speak_grace_ver5_0102_m07a_verygood.motion3.json"
 				},
+				{
+					"File": "motions/Speak/Speak_嘿嘿嘿 羡慕吧.motion3.json"
+				},
+				{
+					"File": "motions/Speak/Speak_嘿嘿嘿，羡慕吗.motion3.json"
+				},
+				{
+					"File": "motions/Speak/Speak_知道你要说什么.motion3.json"
+				},
+				{
+					"File": "motions/Speak/Speak_笑话说太多次就没有意思了.motion3.json"
+				},
+				{
+					"File": "motions/Speak/Speak_难道你在外面还有其他的应急食品吗.motion3.json"
+				}
+			],
+			"Speak": [
 				{
 					"File": "motions/Speak/Speak_motion_100.motion3.json"
 				},
@@ -179,12 +196,6 @@
 					"File": "motions/Speak/Speak_嗯.motion3.json"
 				},
 				{
-					"File": "motions/Speak/Speak_嘿嘿嘿 羡慕吧.motion3.json"
-				},
-				{
-					"File": "motions/Speak/Speak_嘿嘿嘿，羡慕吗.motion3.json"
-				},
-				{
 					"File": "motions/Speak/Speak_好无聊.motion3.json"
 				},
 				{
@@ -206,12 +217,6 @@
 					"File": "motions/Speak/Speak_派蒙会一直支持着你哦.motion3.json"
 				},
 				{
-					"File": "motions/Speak/Speak_知道你要说什么.motion3.json"
-				},
-				{
-					"File": "motions/Speak/Speak_笑话说太多次就没有意思了.motion3.json"
-				},
-				{
 					"File": "motions/Speak/Speak_身体不太舒服.motion3.json"
 				},
 				{
@@ -222,9 +227,6 @@
 				},
 				{
 					"File": "motions/Speak/Speak_陪你旅行到现在.motion3.json"
-				},
-				{
-					"File": "motions/Speak/Speak_难道你在外面还有其他的应急食品吗.motion3.json"
 				}
 			]
 		}

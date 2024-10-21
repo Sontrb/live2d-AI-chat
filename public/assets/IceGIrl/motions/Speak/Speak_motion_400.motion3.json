@@ -7,7 +7,7 @@
 		"FadeOutTime": 1.0,
 		"Loop": true,
 		"AreBeziersRestricted": false,
-		"CurveCount": 70,
+		"CurveCount": 67,
 		"TotalSegmentCount": 113,
 		"TotalPointCount": 273,
 		"UserDataCount": 0,
@@ -332,39 +332,6 @@
 		{
 			"Target": "Parameter",
 			"Id": "ParamBrowWrinkleR",
-			"Segments": [
-				0,
-				0,
-				0,
-				2.4,
-				0
-			]
-		},
-		{
-			"Target": "Parameter",
-			"Id": "ParamMouthForm",
-			"Segments": [
-				0,
-				1,
-				0,
-				2.4,
-				1
-			]
-		},
-		{
-			"Target": "Parameter",
-			"Id": "ParamMouthOpenY",
-			"Segments": [
-				0,
-				0,
-				0,
-				2.4,
-				0
-			]
-		},
-		{
-			"Target": "Parameter",
-			"Id": "ParamMouthForm2",
 			"Segments": [
 				0,
 				0,

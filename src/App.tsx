@@ -1,6 +1,6 @@
 import "regenerator-runtime/runtime"; // https://github.com/JamesBrill/react-speech-recognition/issues/110#issuecomment-1898624289
 import { useEffect, useRef, useState } from "react";
-import { Live2DModel } from "pixi-live2d-display-lipsyncpatch";
+import { Live2DModel, MotionPriority } from "pixi-live2d-display-lipsyncpatch";
 import textToSpeech from "./models/tts/textToSpeech";
 import LLMChat from "./models/llm/LLMChat";
 import Dictaphones from "./models/stt/Dictaphones.tsx";
@@ -67,6 +67,7 @@ function App() {
       content: string;
     }[]
   ) {
+    console.log("handleSpeechRecognized", context);
     userSpeaking = false;
     if (!model) return;
     const stream = await chat.ask(context);
@@ -136,13 +137,15 @@ function App() {
       }
     ) {
       return new Promise<void>((resolve, reject) => {
-        model.motion("Speak").catch((e) => console.error(e));
+        console.log('model start speak')
+        model.motion("Speak", undefined, MotionPriority.FORCE).catch((e) => console.error(e));
         model.speak(audio_link, {
           volume: volume,
           expression: expression,
           resetExpression: resetExpression,
           crossOrigin: crossOrigin,
           onFinish: () => {
+            console.log('model stop speak')
             model.motion("Idle").catch((e) => console.error(e));
             resolve(); // 成功时解析 Promise
           },
