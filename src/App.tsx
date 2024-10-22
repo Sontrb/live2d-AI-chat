@@ -9,6 +9,8 @@ import loadModel from "./models/live2d/functions/loadModel";
 import config from "./config.ts";
 import { twoPointMove } from "./models/live2d/motionMaker/shakeBody.ts";
 import autoWink from "./models/live2d/expression/autowink.ts";
+import { Stream } from "openai/streaming.mjs";
+import { ChatCompletionChunk } from "openai/resources/index.mjs";
 
 const apiKey = config.openai_apikey;
 const modelName = config.openai_model_name;
@@ -17,7 +19,10 @@ const apiBase = config.openai_endpoint;
 const chat = new LLMChat(apiKey, modelName, apiBase);
 
 let userSpeaking = false;
-let reader: object | null = null;
+const reader: {
+  stream: Stream<ChatCompletionChunk> | null;
+  controller: AbortController | null;
+} = { stream: null, controller: null };
 
 function addToContext(
   text: string,
@@ -45,7 +50,13 @@ function App() {
       role: string;
       content: string;
     }>
-  >([]);
+  >([
+    {
+      role: "system",
+      content:
+        "You are a AI for chatting. Your job is to entertain users. let's make some short, funny, and humorous conversation",
+    },
+  ]);
   const expressionInput = useRef<HTMLInputElement>(null);
 
   // load model when init
@@ -83,15 +94,16 @@ function App() {
     console.log("handleSpeechRecognized", context);
     userSpeaking = false;
     if (!model) return;
-    const stream = await chat.ask(context);
-    reader = stream;
+    const { stream, controller } = await chat.ask(context);
+    reader.stream = stream;
+    reader.controller = controller;
     setContext((context) => [...context, { role: "assistant", content: "" }]);
     let currentSentence = "";
-    for await (const chunk of reader) {
+    for await (const chunk of reader.stream) {
       const llmResponse = chunk.choices[0]?.delta?.content;
       if (userSpeaking) {
         currentSentence = "";
-        reader = null;
+        reader.stream = null;
         break;
       }
       currentSentence += llmResponse;
@@ -103,13 +115,13 @@ function App() {
         currentSentence = "";
       }
     }
-    if (reader && currentSentence !== "") {
+    if (reader.stream && currentSentence !== "") {
       addToContext(currentSentence, setContext);
       const data = await textToSpeech(currentSentence, "tts");
       const url = await data.text();
       await handleSpeak(url, model);
     }
-    reader = null;
+    reader.stream = null;
   }
 
   // when user speak break the ai speak
@@ -117,9 +129,10 @@ function App() {
     if (!model) return;
     userSpeaking = true;
     model.stopSpeaking();
-    if (reader) {
+    if (reader.stream) {
       addToContext("[break by user]", setContext);
-      reader = null;
+      reader.controller.abort();
+      reader.stream = null;
     }
   }
 
@@ -131,7 +144,7 @@ function App() {
     // const audio_link =
     //   "https://cdn.jsdelivr.net/gh/RaSan147/pixi-live2d-display@v1.0.3/playground/test.mp3"; // 音频链接地址 [可选参数，可以为null或空] [相对或完整url路径] [mp3或wav文件]
     const volume = 1; // 声音大小 [可选参数，可以为null或空][0.0-1.0]
-    const expression = null; // 模型表情 [可选参数，可以为null或空] [index | expression表情名称]
+    const expression = undefined; // 模型表情 [可选参数，可以为null或空] [index | expression表情名称]
     const resetExpression = true; // 是否在动画结束后将表情expression重置为默认值 [可选参数，可以为null或空] [true | false] [default: true]
     const crossOrigin = "anonymous"; // 使用不同来源的音频 [可选] [default: null]
 
@@ -177,7 +190,7 @@ function App() {
       expression: expression,
       resetExpression: resetExpression,
       crossOrigin: crossOrigin,
-    });
+    }).catch((e) => console.error("speakWithPromise error: ", e));
 
     // 或者如果您想保留某些默认设置
     // model.speak(audio_link);

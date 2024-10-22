@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import AbortController from "abort-controller";
 
 export default class LLMChat {
   private apiKey: string;
@@ -31,12 +32,16 @@ export default class LLMChat {
       temperature: 0.75,
     };
 
+    const controller = new AbortController();
+    const signal = controller.signal;
+
     const stream = await this.client.chat.completions.create(data, {
+      signal,
       headers: {
         "x-stainless-retry-count": null,
       },
     });
 
-    return stream;
+    return { stream, controller };
   }
 }
