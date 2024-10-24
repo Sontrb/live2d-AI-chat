@@ -1,6 +1,5 @@
 import config from "../../config";
 
-
 export default async function (input: string, model = "tts") {
   const url =  config.backend_endpoint + "/tts";
   const headers = {
@@ -15,5 +14,6 @@ export default async function (input: string, model = "tts") {
     headers,
     body,
   });
+
   return data;
 }

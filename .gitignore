@@ -1,5 +1,6 @@
 # local
 backend/public/sound
+.timetracker
 
 # Logs
 logs

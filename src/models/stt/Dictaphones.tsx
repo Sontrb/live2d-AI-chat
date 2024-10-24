@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useState } from "react";
 import DictaphoneWidgetB from "./Dictaphone/DictaphoneWidgetB";
 import SpeechRecognition from "react-speech-recognition";
 

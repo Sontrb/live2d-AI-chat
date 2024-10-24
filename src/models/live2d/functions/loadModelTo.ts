@@ -1,9 +1,9 @@
-import { MutableRefObject } from "react";
+import { RefObject } from "react";
 import { Application } from "@pixi/app";
 import { Live2DModel } from "pixi-live2d-display-lipsyncpatch";
 
 // load model to canvas
-function loadModelTo(stage: MutableRefObject<HTMLElement>, model: Live2DModel) {
+function loadModelTo(stage: RefObject<HTMLElement>, model: Live2DModel) {
   if (!model || !stage.current) {
     console.log("no model or no stage");
     return;
@@ -28,12 +28,12 @@ function loadModelTo(stage: MutableRefObject<HTMLElement>, model: Live2DModel) {
   // resize
   const scaleX = newCanvas.width / model.width;
   const scaleY = newCanvas.height / model.height;
-  model.scale.set(Math.min(scaleX, scaleY)*2);
+  model.scale.set(Math.min(scaleX, scaleY) * 2);
   model.x = newCanvas.width / 2 - model.width / 2;
 
   return () => {
     app.destroy();
-    stage.current.removeChild(newCanvas);
+    if (stage.current) stage.current.removeChild(newCanvas);
   };
 }
 

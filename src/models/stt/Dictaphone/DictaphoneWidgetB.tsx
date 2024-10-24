@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import { useState } from "react";
+// @ts-ignore
 import Dictaphone from "./Dictaphone";
 
 const DictaphoneWidgetB = ({
@@ -12,12 +13,12 @@ const DictaphoneWidgetB = ({
   const commands = [
     {
       command: "* is my name",
-      callback: (name) => setMessage(`Hi ${name}!`),
+      callback: (name: string) => setMessage(`Hi ${name}!`),
       matchInterim: true,
     },
     {
       command: "My top sports are * and *",
-      callback: (sport1, sport2) => setMessage(`#1: ${sport1}, #2: ${sport2}`),
+      callback: (sport1: string, sport2: string) => setMessage(`#1: ${sport1}, #2: ${sport2}`),
     },
     {
       command: "Goodbye",

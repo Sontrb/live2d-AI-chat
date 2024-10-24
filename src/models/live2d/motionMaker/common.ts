@@ -1,8 +1,8 @@
 export function parameterFromTo(
-  parameterId: string,
-  from: number,
-  to: number,
-  duration: number
+  _parameterId: string,
+  _from: number,
+  _to: number,
+  _duration: number
 ) {
   return {
     Version: 3,

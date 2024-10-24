@@ -7,10 +7,10 @@ import Dictaphones from "./models/stt/Dictaphones.tsx";
 import loadModelTo from "./models/live2d/functions/loadModelTo";
 import loadModel from "./models/live2d/functions/loadModel";
 import config from "./config.ts";
-import { twoPointMove } from "./models/live2d/motionMaker/shakeBody.ts";
 import autoWink from "./models/live2d/expression/autowink.ts";
 import { Stream } from "openai/streaming.mjs";
 import { ChatCompletionChunk } from "openai/resources/index.mjs";
+import AbortController from "abort-controller";
 
 const apiKey = config.openai_apikey;
 const modelName = config.openai_model_name;
@@ -44,7 +44,7 @@ function addToContext(
 
 function App() {
   const [model, setModel] = useState<Live2DModel>();
-  const stage = useRef(null);
+  const stage = useRef<HTMLDivElement>(null);
   const [context, setContext] = useState<
     Array<{
       role: string;
@@ -125,13 +125,13 @@ function App() {
   }
 
   // when user speak break the ai speak
-  async function handleUserSpeaking(text: string) {
+  async function handleUserSpeaking(_text: string) {
     if (!model) return;
     userSpeaking = true;
     model.stopSpeaking();
     if (reader.stream) {
       addToContext("[break by user]", setContext);
-      reader.controller.abort();
+      if (reader.controller) reader.controller.abort();
       reader.stream = null;
     }
   }
@@ -260,14 +260,13 @@ function App() {
               onClick={async () => {
                 // use the data in input
                 if (expressionInput.current) {
-                  // const expressionName = expressionInput.current.value;
-                  const customMotion =
-                    model.internalModel.motionManager.createMotion(
-                      twoPointMove(),
-                      "app",
-                      "temp1"
-                    );
-                  model.internalModel.motionManager._startMotion(customMotion);
+                  // const customMotion =
+                  //   model.internalModel.motionManager.createMotion(
+                  //     twoPointMove(),
+                  //     "app",
+                  //     "temp1"
+                  //   );
+                  // model.internalModel.motionManager._startMotion(customMotion);
                 }
               }}
             >

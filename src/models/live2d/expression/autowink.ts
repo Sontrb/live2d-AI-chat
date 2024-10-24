@@ -25,7 +25,7 @@ export default function autoWink(model: Live2DModel | null) {
   };
 }
 
-function generateNormalRandom(mean, stdDev) {
+function generateNormalRandom(mean: number, stdDev: number) {
   let u, v, s;
   do {
     u = Math.random() * 2 - 1;
@@ -37,6 +37,6 @@ function generateNormalRandom(mean, stdDev) {
   return mean + stdDev * u * multiplier;
 }
 
-function wait(ms) {
+function wait(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }

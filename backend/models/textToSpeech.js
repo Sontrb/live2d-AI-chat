@@ -2,8 +2,11 @@ import fs from "fs";
 import { exec, spawn } from "child_process";
 import path from "path";
 import os from "os";
+import { EdgeTTS } from "node-edge-tts";
 
 const outputDirectory = "./public/sound"; // 指定输出目录
+const tempDir = os.tmpdir();
+
 function deleteOldFiles(dir, minutes) {
   const now = Date.now();
   const cutoffTime = now - minutes * 60 * 1000; // 10分钟前的毫秒数
@@ -35,7 +38,7 @@ function deleteOldFiles(dir, minutes) {
     });
   });
 }
-function generateMP3(text, outputDir) {
+async function generateMP3_V1(text, outputDir) {
   return new Promise((resolve, reject) => {
     // 执行 edge-tts 命令前，先删除10分钟前的文件
     deleteOldFiles(outputDir, 10);
@@ -72,7 +75,7 @@ function generateMP3(text, outputDir) {
             reject(err);
           } else {
             console.log("MP3 file generated successfully:", filePath);
-            resolve(filename);
+            resolve(`http://127.0.0.1:3000/static/${outputDirectory.replace("./public", "")}/${filePath}`);
           }
         });
       }
@@ -80,9 +83,31 @@ function generateMP3(text, outputDir) {
   });
 }
 
+async function generateMP3(text, outputDir) {
+  const tts = new EdgeTTS({
+    voice: "en-US-AriaNeural",
+    lang: "en-US",
+    outputFormat: "audio-24khz-96kbitrate-mono-mp3",
+    saveSubtitles: true,
+    // proxy: 'http://localhost:7890',
+    pitch: "+10%",
+    rate: "+10%",
+    // volume: '-50%'
+  });
+
+  const filePath = path.join(tempDir, "temp.mp3");
+
+  await tts.ttsPromise(text, filePath);
+
+  const dataBuffer = fs.readFileSync(filePath);
+  const base64String = "data:audio/wav;base64," + dataBuffer.toString("base64");
+
+  return base64String;
+}
+
 export async function textToSpeech(text) {
   const data = await generateMP3(text, outputDirectory).catch((error) => {
     console.error("Error:", error);
   });
-  return `${outputDirectory.replace('./public','')}/${data}`;
+  return data;
 }

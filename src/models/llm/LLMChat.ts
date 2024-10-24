@@ -35,6 +35,7 @@ export default class LLMChat {
     const controller = new AbortController();
     const signal = controller.signal;
 
+    // @ts-ignore
     const stream = await this.client.chat.completions.create(data, {
       signal,
       headers: {

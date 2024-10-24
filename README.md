@@ -1,50 +1,35 @@
-# React + TypeScript + Vite
+# live2d chat
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+this is a app, you can talk with a live2d model.
 
-Currently, two official plugins are available:
+# feature
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+1. show live2d model 🆗
+2. auto change expression of model 🆗
+3. auto change motion of model 🆗
+4. speech to text 🆗 (web speech api) 
+5. text to speech 🆗 (backend: node-edge-tts) 
+6. style of speech
+7. subtitle of AI and User
+8. long-term memory
+9. Custom chat model
+10. Speaking first / Find topics
+11. changeable model, expression and motion
+12. other function: playing games, singing，searching google, etc.
 
-## Expanding the ESLint configuration
+# how to use?
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+1. install [ollama](https://ollama.com/) and pull llama3.2 model
+2. install nodejs, pnpm
+3. git clone https://github.com/zoollcar/live2d-AI-chat
+4. cd live2d-AI-chat & pnpm install & cd backend & pnpm install
+5. run the backend: cd backend & pnpm run dev
+6. run the app: cd live2d-AI-chat & pnpm run dev
 
-- Configure the top-level `parserOptions` property like this:
+# config
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+frontend: src/config.ts
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
-
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
+# credits
+live2d model: [Tianyelulu](https://tianyelulu.booth.pm)

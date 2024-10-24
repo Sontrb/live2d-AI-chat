@@ -15,7 +15,7 @@ app.get("/", (req, res) => {
 
 app.post("/tts", async (req, res) => {
   let data = await textToSpeech(req.body.input);
-  res.send(`http://127.0.0.1:3000/static/${data}`);
+  res.send(`${data}`);
 });
 
 app.listen(port, () => {
