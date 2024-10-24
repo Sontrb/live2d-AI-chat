@@ -2,10 +2,13 @@
 
 this is a app, you can talk with a live2d model.
 
+![image](https://github.com/user-attachments/assets/b7dec493-70fc-40d0-bfbf-c0940e6aaa91)
+
+
 # feature
 
 1. show live2d model 🆗
-2. auto change expression of model 🆗
+2. auto change expression of model
 3. auto change motion of model 🆗
 4. speech to text 🆗 (web speech api) 
 5. text to speech 🆗 (backend: node-edge-tts) 
