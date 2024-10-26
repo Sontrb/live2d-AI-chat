@@ -4,7 +4,9 @@ import { Live2DModel, MotionPriority } from "pixi-live2d-display-lipsyncpatch";
 import textToSpeech from "./models/tts/textToSpeech";
 import LLMChat from "./models/llm/LLMChat";
 import Dictaphones from "./models/stt/Dictaphones.tsx";
-import loadModelTo from "./models/live2d/functions/loadModelTo";
+import loadModelTo, {
+  addOrChangeSubtileOfApp,
+} from "./models/live2d/functions/loadModelTo";
 import loadModel from "./models/live2d/functions/loadModel";
 import config from "./config.ts";
 import autoWink from "./models/live2d/expression/autowink.ts";
@@ -83,6 +85,10 @@ function App() {
     if (!model) return;
     // model.expression('翅膀');
   }, [model]);
+
+  useEffect(() => {
+    return addOrChangeSubtileOfApp(context[context.length - 1].content);
+  }, [context]);
 
   // after user speak
   async function handleSpeechRecognized(
@@ -306,4 +312,5 @@ function App() {
     </>
   );
 }
+
 export default App;

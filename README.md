@@ -13,7 +13,7 @@ this is a app, you can talk with a live2d model.
 4. speech to text 🆗 (web speech api) 
 5. text to speech 🆗 (backend: node-edge-tts) 
 6. style of speech
-7. subtitle of AI and User
+7. subtitle of AI and User 🆗
 8. long-term memory
 9. Custom chat model
 10. Speaking first / Find topics
