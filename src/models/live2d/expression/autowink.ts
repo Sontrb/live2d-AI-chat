@@ -1,7 +1,7 @@
 import { Live2DModel } from "pixi-live2d-display-lipsyncpatch";
 
 export default function autoWink(model: Live2DModel | null) {
-  let winkTimer: NodeJS.Timeout;
+  let winkTimer: ReturnType<typeof setTimeout>;
   async function wink() {
     if (model === null) return;
     if (model.internalModel.motionManager.playing) {
