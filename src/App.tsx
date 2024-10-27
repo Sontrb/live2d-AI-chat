@@ -245,6 +245,8 @@ function App() {
 
   return (
     <>
+      {!isMicrophoneAvailable && <div>❗Microphone not available❗</div>}
+
       <div
         onClick={() => {
           handleClickScreen();

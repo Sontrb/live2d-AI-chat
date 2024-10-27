@@ -18,6 +18,9 @@ export function loadModelTo(stage: RefObject<HTMLElement>, model: Live2DModel) {
     width: stage.current.clientWidth,
     height: stage.current.clientHeight,
   });
+  if (app.renderer?.view?.style?.touchAction) {
+    app.renderer.view.style.touchAction = "auto";
+  }
   app.stage.addChild(model);
 
   model.interactive = false; // disable mouse interaction
