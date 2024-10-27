@@ -1,14 +1,13 @@
 import { useRef } from "react";
+import textToSpeech from "../models/tts/textToSpeech";
+import { Live2DModel, InternalModel } from "pixi-live2d-display-lipsyncpatch";
 
 export default function Debug({
   model,
-  textToSpeech,
   handleSpeak,
-  context,
-  setContext,
-  Dictaphones,
-  handleSpeechRecognized,
-  handleUserSpeaking,
+}: {
+  model: Live2DModel<InternalModel> | null;
+  handleSpeak: (audio_link: string, model: Live2DModel) => Promise<void>;
 }) {
   const expressionInput = useRef(null);
 
@@ -56,7 +55,7 @@ export default function Debug({
               onClick={async () => {
                 // use the data in input
                 if (expressionInput.current) {
-                  const expressionName = expressionInput.current.value;
+                  const expressionName = (expressionInput.current as HTMLInputElement).value;
                   model
                     .expression(Number(expressionName))
                     .catch((e) => console.error(e));

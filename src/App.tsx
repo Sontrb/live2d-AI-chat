@@ -25,7 +25,7 @@ import Dictaphones, {
 import Setting from "./components/setting.tsx";
 import { useSpeechRecognition } from "react-speech-recognition";
 
-type contextType = {
+export type contextType = {
   role: string;
   content: string;
 };
@@ -80,7 +80,7 @@ function App() {
   const chat = new LLMChat(
     openaiApikey,
     openaiModelName,
-    useBackendLLM ? backendEndpoint + '/llm' : openaiEndpoint
+    useBackendLLM ? backendEndpoint + "/llm" : openaiEndpoint
   );
 
   // load model when init
@@ -285,18 +285,7 @@ function App() {
         />
         Debug
       </label>
-      {debugMode && (
-        <Debug
-          model={model}
-          textToSpeech={textToSpeech}
-          handleSpeak={handleSpeak}
-          context={context}
-          setContext={setContext}
-          Dictaphones={Dictaphones}
-          handleSpeechRecognized={handleSpeechRecognized}
-          handleUserSpeaking={handleUserSpeaking}
-        />
-      )}
+      {debugMode && <Debug model={model} handleSpeak={handleSpeak} />}
 
       <label>
         <input
