@@ -20,6 +20,7 @@ export default function Setting() {
         <label>
           backend Endpoint:
           <input
+            className="bg-gray-200"
             type="text"
             value={backendEndpoint}
             onChange={(e) => setBackendEndpoint(e.target.value)}
@@ -27,26 +28,34 @@ export default function Setting() {
         </label>
         <br />
         <label>
-          ues backend LLM?:
+          use backend as llm proxy to avoid CORS?:
           <input
+            className="bg-gray-200"
             type="checkbox"
             checked={useBackendLLM}
             onChange={(e) => setUseBackendLLM(e.target.checked)}
           />
         </label>
-        <br />
-        <label>
-          OpenAI Endpoint:
-          <input
-            type="text"
-            value={openaiEndpoint}
-            onChange={(e) => setOpenaiEndpoint(e.target.value)}
-          />
-        </label>
+
+        {!useBackendLLM && (
+          <>
+            <br />
+            <label>
+              OpenAI Endpoint:
+              <input
+                className="bg-gray-200"
+                type="text"
+                value={openaiEndpoint}
+                onChange={(e) => setOpenaiEndpoint(e.target.value)}
+              />
+            </label>
+          </>
+        )}
         <br />
         <label>
           OpenAI API Key:
           <input
+            className="bg-gray-200"
             type="text"
             value={openaiApikey}
             onChange={(e) => setOpenaiApikey(e.target.value)}
@@ -56,6 +65,7 @@ export default function Setting() {
         <label>
           OpenAI model name:
           <input
+            className="bg-gray-200"
             type="text"
             value={openaiModelName}
             onChange={(e) => setOpenaiModelName(e.target.value)}

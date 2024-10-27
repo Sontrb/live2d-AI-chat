@@ -15,9 +15,13 @@ import {
   useOpenaiApikey,
   useOpenaiEndpoint,
   useOpenaiModelName,
+  useUseBackendLLM,
 } from "./models/appstore.ts";
 import Debug from "./components/debug.tsx";
-import Dictaphones, { listenContinuously, stopListening } from "./models/stt/Dictaphones.tsx";
+import Dictaphones, {
+  listenContinuously,
+  stopListening,
+} from "./models/stt/Dictaphones.tsx";
 import Setting from "./components/setting.tsx";
 import { useSpeechRecognition } from "react-speech-recognition";
 
@@ -65,12 +69,19 @@ function App() {
   const [showSetting, setShowSetting] = useState(false);
   const [showContext, setShowContext] = useState(false);
 
+  const [backendEndpoint] = useBackendEndpoint();
+  const [useBackendLLM] = useUseBackendLLM();
   const [openaiEndpoint] = useOpenaiEndpoint();
   const [openaiApikey] = useOpenaiApikey();
   const [openaiModelName] = useOpenaiModelName();
-  const { listening, isMicrophoneAvailable, resetTranscript } = useSpeechRecognition();
+  const { listening, isMicrophoneAvailable, resetTranscript } =
+    useSpeechRecognition();
 
-  const chat = new LLMChat(openaiApikey, openaiModelName, openaiEndpoint);
+  const chat = new LLMChat(
+    openaiApikey,
+    openaiModelName,
+    useBackendLLM ? backendEndpoint + '/llm' : openaiEndpoint
+  );
 
   // load model when init
   useEffect(() => {
@@ -223,10 +234,10 @@ function App() {
   }
 
   function handleClickScreen() {
-    if(listening){
+    if (listening) {
       stopListening();
       setSubtitle("-- stop listening... --");
-    }else{
+    } else {
       listenContinuously();
       setSubtitle("-- start listening... --");
     }
