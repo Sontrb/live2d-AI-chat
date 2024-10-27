@@ -3,22 +3,28 @@ import { useEffect, useRef, useState } from "react";
 import { Live2DModel, MotionPriority } from "pixi-live2d-display-lipsyncpatch";
 import textToSpeech from "./models/tts/textToSpeech";
 import LLMChat from "./models/llm/LLMChat";
-import Dictaphones from "./models/stt/Dictaphones.tsx";
-import loadModelTo, {
-  addOrChangeSubtileOfApp,
-} from "./models/live2d/functions/loadModelTo";
+import { addOrChangeSubtitle } from "./models/live2d/functions/subtitle.ts";
 import loadModel from "./models/live2d/functions/loadModel";
-import config from "./config.ts";
 import autoWink from "./models/live2d/expression/autowink.ts";
 import { Stream } from "openai/streaming.mjs";
 import { ChatCompletionChunk } from "openai/resources/index.mjs";
 import AbortController from "abort-controller";
+import { loadModelTo } from "./models/live2d/functions/loadModelTo.ts";
+import {
+  useBackendEndpoint,
+  useOpenaiApikey,
+  useOpenaiEndpoint,
+  useOpenaiModelName,
+} from "./models/appstore.ts";
+import Debug from "./components/debug.tsx";
+import Dictaphones, { listenContinuously, stopListening } from "./models/stt/Dictaphones.tsx";
+import Setting from "./components/setting.tsx";
+import { useSpeechRecognition } from "react-speech-recognition";
 
-const apiKey = config.openai_apikey;
-const modelName = config.openai_model_name;
-const apiBase = config.openai_endpoint;
-
-const chat = new LLMChat(apiKey, modelName, apiBase);
+type contextType = {
+  role: string;
+  content: string;
+};
 
 let userSpeaking = false;
 const reader: {
@@ -45,21 +51,26 @@ function addToContext(
 }
 
 function App() {
-  const [model, setModel] = useState<Live2DModel>();
+  const [model, setModel] = useState<Live2DModel | null>(null);
   const stage = useRef<HTMLDivElement>(null);
-  const [context, setContext] = useState<
-    Array<{
-      role: string;
-      content: string;
-    }>
-  >([
+  const [context, setContext] = useState<contextType[]>([
     {
       role: "system",
       content:
         "You are a AI for chatting. Your job is to entertain users. let's make some short, funny, and humorous conversation",
     },
   ]);
-  const expressionInput = useRef<HTMLInputElement>(null);
+  const [subtitle, setSubtitle] = useState("");
+  const [debugMode, setDebugMode] = useState(false);
+  const [showSetting, setShowSetting] = useState(false);
+  const [showContext, setShowContext] = useState(false);
+
+  const [openaiEndpoint] = useOpenaiEndpoint();
+  const [openaiApikey] = useOpenaiApikey();
+  const [openaiModelName] = useOpenaiModelName();
+  const { listening, isMicrophoneAvailable, resetTranscript } = useSpeechRecognition();
+
+  const chat = new LLMChat(openaiApikey, openaiModelName, openaiEndpoint);
 
   // load model when init
   useEffect(() => {
@@ -84,11 +95,16 @@ function App() {
   useEffect(() => {
     if (!model) return;
     // model.expression('翅膀');
+    setSubtitle("-- touch anywhere to start --");
   }, [model]);
 
   useEffect(() => {
-    return addOrChangeSubtileOfApp(context[context.length - 1].content);
+    return setSubtitle(context[context.length - 1].content);
   }, [context]);
+
+  useEffect(() => {
+    return addOrChangeSubtitle(subtitle);
+  }, [subtitle]);
 
   // after user speak
   async function handleSpeechRecognized(
@@ -198,7 +214,6 @@ function App() {
       crossOrigin: crossOrigin,
     }).catch((e) => console.error("speakWithPromise error: ", e));
 
-    // 或者如果您想保留某些默认设置
     // model.speak(audio_link);
     // model.speak(audio_link, { volume: volume });
     // model.speak(audio_link, {
@@ -207,108 +222,90 @@ function App() {
     // });
   }
 
+  function handleClickScreen() {
+    if(listening){
+      stopListening();
+      setSubtitle("-- stop listening... --");
+    }else{
+      listenContinuously();
+      setSubtitle("-- start listening... --");
+    }
+  }
+
   return (
     <>
-      <div className="w-screen h-screen" ref={stage} id="canvas"></div>
-      {model && (
-        <div className="flex place-content-between">
-          <div id="test buttons" className="w-1/2 flex gap-2 flex-wrap">
-            <button
-              className="bg-gray-200 rounded-sm"
-              onClick={async () => {
-                const data = await textToSpeech("hello word", "tts");
-                const url = await data.text();
-                handleSpeak(url, model);
-              }}
-            >
-              test speaking
-            </button>
-            <button
-              className="bg-gray-200 rounded-sm"
-              onClick={async () => {
-                model.motion("Idle").catch((e) => console.error(e));
-              }}
-            >
-              run motion-Idle
-            </button>
-            <button
-              className="bg-gray-200 rounded-sm"
-              onClick={async () => {
-                model.motion("Speak").catch((e) => console.error(e));
-              }}
-            >
-              run motion-Speak
-            </button>
-            <br />
-            <input
-              type="text"
-              className="bg-gray-200 rounded-sm"
-              id="input"
-              placeholder="input expression name"
-              ref={expressionInput}
-            />
-            <button
-              className="bg-gray-200 rounded-sm"
-              onClick={async () => {
-                // use the data in input
-                if (expressionInput.current) {
-                  const expressionName = expressionInput.current.value;
-                  model
-                    .expression(Number(expressionName))
-                    .catch((e) => console.error(e));
-                }
-              }}
-            >
-              run expression
-            </button>
-            <button
-              className="bg-gray-200 rounded-sm"
-              onClick={async () => {
-                // use the data in input
-                if (expressionInput.current) {
-                  // const customMotion =
-                  //   model.internalModel.motionManager.createMotion(
-                  //     twoPointMove(),
-                  //     "app",
-                  //     "temp1"
-                  //   );
-                  // model.internalModel.motionManager._startMotion(customMotion);
-                }
-              }}
-            >
-              run CustomMotion
-            </button>
-          </div>
+      <div
+        onClick={() => {
+          handleClickScreen();
+        }}
+        className="w-screen h-screen"
+        ref={stage}
+        id="canvas"
+      ></div>
 
-          <div className="w-1/2">
-            <Dictaphones
-              onSpeechRecognized={(text: string) => {
-                setContext((context) => [
-                  ...context,
-                  { role: "user", content: text },
-                ]);
-                handleSpeechRecognized([
-                  ...context,
-                  { role: "user", content: text },
-                ]);
-              }}
-              onUserSpeaking={(text: string) => {
-                handleUserSpeaking(text);
-              }}
-            />
-          </div>
-        </div>
+      <Dictaphones
+        onSpeechRecognized={(text: string) => {
+          setContext((context) => [
+            ...context,
+            { role: "user", content: text },
+          ]);
+          handleSpeechRecognized([...context, { role: "user", content: text }]);
+        }}
+        onUserSpeaking={(text: string) => {
+          handleUserSpeaking(text);
+        }}
+      />
+
+      <label>
+        <input
+          type="checkbox"
+          checked={showSetting}
+          onChange={(e) => setShowSetting(e.target.checked)}
+        />
+        ShowSetting
+      </label>
+      {showSetting && <Setting />}
+
+      <label>
+        <input
+          type="checkbox"
+          checked={debugMode}
+          onChange={(e) => setDebugMode(e.target.checked)}
+        />
+        Debug
+      </label>
+      {debugMode && (
+        <Debug
+          model={model}
+          textToSpeech={textToSpeech}
+          handleSpeak={handleSpeak}
+          context={context}
+          setContext={setContext}
+          Dictaphones={Dictaphones}
+          handleSpeechRecognized={handleSpeechRecognized}
+          handleUserSpeaking={handleUserSpeaking}
+        />
       )}
 
-      <ul>
-        {context.map((e) => {
-          return (
-            <li key={e.role + e.content}>
-              {e.role}: {e.content}
-            </li>
-          );
-        })}
-      </ul>
+      <label>
+        <input
+          type="checkbox"
+          checked={showContext}
+          onChange={(e) => setShowContext(e.target.checked)}
+        />
+        Show context log
+      </label>
+      {showContext && (
+        <ul>
+          {context.map((e) => {
+            return (
+              <li key={e.role + e.content}>
+                {e.role}: {e.content}
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </>
   );
 }

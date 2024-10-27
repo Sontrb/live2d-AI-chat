@@ -1,7 +1,7 @@
-import config from "../../config";
+import { getBackendEndpoint } from "../appstore";
 
-export default async function (input: string, model = "tts") {
-  const url =  config.backend_endpoint + "/tts";
+export default async function textToSpeech(input: string, model = "tts") {
+  const url =  getBackendEndpoint() + "/tts";
   const headers = {
     "Content-Type": "application/json",
   };
