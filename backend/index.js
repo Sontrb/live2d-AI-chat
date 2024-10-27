@@ -2,7 +2,7 @@ import express from "express";
 import { textToSpeech } from "./models/textToSpeech.js";
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 61234;
 
 app.use(express.json());
 import cors from "cors"; // https://expressjs.com/en/resources/middleware/cors.html

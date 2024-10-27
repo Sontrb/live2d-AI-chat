@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@tauri-apps/plugin-shell':
+        specifier: ^2.0.1
+        version: 2.0.1
       abort-controller:
         specifier: ^3.0.0
         version: 3.0.0
@@ -680,6 +683,9 @@ packages:
   '@swc/types@0.1.12':
     resolution: {integrity: sha512-wBJA+SdtkbFhHjTMYH+dEH1y4VpfGdAc2Kw/LK09i9bXd/K6j6PkDcFCEzb6iVfZMkPRrl/q0e3toqTAJdkIVA==}
 
+  '@tauri-apps/api@2.0.3':
+    resolution: {integrity: sha512-840qk6n8rbXBXMA5/aAgTYsg5JAubKO0nXw5wf7IzGnUuYKGbB4oFBIZtXOIWy+E0kNTDI3qhq5iqsoMJfwp8g==}
+
   '@tauri-apps/cli-darwin-arm64@2.0.4':
     resolution: {integrity: sha512-siH7rOHobb16rPbc11k64p1mxIpiRCkWmzs2qmL5IX21Gx9K5onI3Tk67Oqpf2uNupbYzItrOttaDT4NHFC7tw==}
     engines: {node: '>= 10'}
@@ -748,6 +754,9 @@ packages:
     resolution: {integrity: sha512-Hl9eFXz+O366+6su9PfaSzu2EJdFe1p8K8ghkWmi40dz8VmSE7vsMTaOStD0I71ckSOkh2ICDX7FQTBgjlpjWw==}
     engines: {node: '>= 10'}
     hasBin: true
+
+  '@tauri-apps/plugin-shell@2.0.1':
+    resolution: {integrity: sha512-akU1b77sw3qHiynrK0s930y8zKmcdrSD60htjH+mFZqv5WaakZA/XxHR3/sF1nNv9Mgmt/Shls37HwnOr00aSw==}
 
   '@types/css-font-loading-module@0.0.12':
     resolution: {integrity: sha512-x2tZZYkSxXqWvTDgveSynfjq/T2HyiZHXb00j/+gy19yp70PHCizM48XFdjBCWH7eHBD0R5i/pw9yMBP/BH5uA==}
@@ -2249,6 +2258,8 @@ snapshots:
     dependencies:
       '@swc/counter': 0.1.3
 
+  '@tauri-apps/api@2.0.3': {}
+
   '@tauri-apps/cli-darwin-arm64@2.0.4':
     optional: true
 
@@ -2291,6 +2302,10 @@ snapshots:
       '@tauri-apps/cli-win32-arm64-msvc': 2.0.4
       '@tauri-apps/cli-win32-ia32-msvc': 2.0.4
       '@tauri-apps/cli-win32-x64-msvc': 2.0.4
+
+  '@tauri-apps/plugin-shell@2.0.1':
+    dependencies:
+      '@tauri-apps/api': 2.0.3
 
   '@types/css-font-loading-module@0.0.12': {}
 

@@ -1,22 +1,20 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "type": "module",
-  "scripts": {
-    "dev": "nodemon index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
   "author": "",
-  "license": "ISC",
+  "main": "index.js",
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.21.1",
     "node-edge-tts": "^1.2.3"
   },
-  "devDependencies": {
-    "nodemon": "^3.1.7"
-  }
+  "description": "",
+  "keywords": [],
+  "license": "ISC",
+  "scripts": {
+    "dev": "bun --watch index.js",
+    "build:windows": "bun build index.js --compile --outfile ../src-tauri/binaries/backend-x86_64-pc-windows-msvc.exe",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "type": "module"
 }

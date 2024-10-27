@@ -10,23 +10,34 @@ export default function Dictaphones({
   onUserSpeaking: (transcript: string) => void;
 }) {
   const [isActivating, setIsActivating] = useState(false);
+  const [debug, setDebug] = useState("");
 
   const listenContinuously = () =>
     SpeechRecognition.startListening({
       continuous: true,
       language: "en-GB",
+    }).catch((e) => {
+      console.error(e)
     });
   const listenContinuouslyInChinese = () =>
     SpeechRecognition.startListening({
       continuous: true,
       language: "zh-CN",
+    }).catch((e) => {
+      console.error(e)
     });
   const listenOnce = () =>
-    SpeechRecognition.startListening({ continuous: false });
+    SpeechRecognition.startListening({ continuous: false }).catch((e) => {
+      console.error(e)
+    });
 
   return (
     <div>
-      <DictaphoneWidgetB onSpeechRecognized={onSpeechRecognized} onUserSpeaking={onUserSpeaking} />
+      <div>{debug}</div>
+      <DictaphoneWidgetB
+        onSpeechRecognized={onSpeechRecognized}
+        onUserSpeaking={onUserSpeaking}
+      />
       <div className="flex gap-6">
         <button onClick={listenOnce}>Listen once</button>
         <button

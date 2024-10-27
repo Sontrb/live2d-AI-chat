@@ -1,5 +1,5 @@
 {
-  "name": "live-chat",
+  "name": "live2d-chat",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -12,6 +12,7 @@
     "tauri:build": "pnpm tauri build"
   },
   "dependencies": {
+    "@tauri-apps/plugin-shell": "^2.0.1",
     "abort-controller": "^3.0.0",
     "openai": "^4.68.1",
     "pixi-live2d-display-lipsyncpatch": "0.5.0-ls-7",
