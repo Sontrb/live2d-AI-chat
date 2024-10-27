@@ -8,6 +8,12 @@ importers:
 
   .:
     dependencies:
+      '@pixi/app':
+        specifier: ^7.4.2
+        version: 7.4.2(@pixi/core@7.4.2)(@pixi/display@7.4.2(@pixi/core@7.4.2))
+      '@pixi/ticker':
+        specifier: ^7.4.2
+        version: 7.4.2
       '@tauri-apps/plugin-shell':
         specifier: ^2.0.1
         version: 2.0.1
