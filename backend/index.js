@@ -7,7 +7,11 @@ const app = express();
 const port = process.env.PORT || 61234;
 
 app.use(express.json());
-app.use(cors());
+var corsOptions = {
+  origin: process.env.cors_allowed_origins,
+  optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
+}
+app.use(cors(corsOptions));
 app.use("/static", express.static("public"));
 
 app.get("/", (req, res) => {
