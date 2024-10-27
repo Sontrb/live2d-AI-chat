@@ -2,7 +2,7 @@
 
 this is a app, you can talk with a live2d model.
 
-![image](https://github.com/user-attachments/assets/b7dec493-70fc-40d0-bfbf-c0940e6aaa91)
+![image](https://github.com/user-attachments/assets/d5185348-a251-4ff8-aa3e-e2ffcaa03bed)
 
 
 # feature
