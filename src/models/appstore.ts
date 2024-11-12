@@ -7,6 +7,8 @@ type AppStore = {
   setBackendEndpoint: (backendEndpoint: string) => void;
   useBackendLLM: boolean;
   setUseBackendLLM: (useBackendLLM: boolean) => void;
+  useWebLLM: boolean;
+  setUseWebLLM: (useWebLLM: boolean) => void;
   openaiEndpoint: string;
   setOpenaiEndpoint: (openaiEndpoint: string) => void;
   openaiApikey: string;
@@ -23,6 +25,8 @@ const useAppStore = create<AppStore>()(
         _set({ backendEndpoint }),
       useBackendLLM: false,
       setUseBackendLLM: (useBackendLLM: boolean) => _set({ useBackendLLM }),
+      useWebLLM: true,
+      setUseWebLLM: (useWebLLM: boolean) => _set({ useWebLLM }),
       openaiEndpoint: "http://localhost:11434/v1",
       setOpenaiEndpoint: (openaiEndpoint: string) => _set({ openaiEndpoint }),
       openaiApikey: "",
@@ -53,6 +57,8 @@ export const useUseBackendLLM = (): [
   useAppStore(
     useShallow((state) => [state.useBackendLLM, state.setUseBackendLLM])
   );
+export const useUseWebLLM = (): [boolean, (useWebLLM: boolean) => void] =>
+  useAppStore(useShallow((state) => [state.useWebLLM, state.setUseWebLLM]));
 export const useOpenaiEndpoint = (): [
   string,
   (openaiEndpoint: string) => void

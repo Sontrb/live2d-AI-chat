@@ -1,9 +1,12 @@
 # live2d chat
 
-this is a app, you can talk with a live2d model.
+Talk with a live2d model.
+
+Run locally in the browser or using backend proxy connection openai, Ollama etc.
+
+Try it online [https://live2d-ai-chat.hitorisama.org/]
 
 ![image](https://github.com/user-attachments/assets/d5185348-a251-4ff8-aa3e-e2ffcaa03bed)
-
 
 # feature
 
@@ -11,7 +14,7 @@ this is a app, you can talk with a live2d model.
 2. auto change expression of model
 3. auto change motion of model 🆗
 4. speech to text 🆗 (web speech api) 
-5. text to speech 🆗 (backend: node-edge-tts) 
+5. text to speech 🆗 (browser:vits-web; backend: node-edge-tts)
 6. style of speech
 7. subtitle of AI and User 🆗
 8. long-term memory
@@ -26,7 +29,7 @@ this is a app, you can talk with a live2d model.
 2. install nodejs, pnpm, bun(optional)
 3. git clone https://github.com/zoollcar/live2d-AI-chat
 4. cd live2d-AI-chat & pnpm install & cd backend & pnpm install
-5. run the backend: cd backend & node index.js
+5. run the backend: cd backend & cp .env.local.example .env.local & node index.js
 6. run the app: cd live2d-AI-chat & pnpm run dev
 
 # how to build to exe? (have some issue for now, not work)
@@ -39,9 +42,11 @@ this is a app, you can talk with a live2d model.
 
 # config
 
-frontend: src/config.ts
-backend: backend/.env.local
+frontend LLM model: [LLMChatWebLLM](./src/models/llm/LLMChatWebLLM.ts)
 
+frontend TTS model:[vitsWeb](src/models/tts/vitsWeb.ts)
+
+backend: [.env.local.example](backend/.env.local.example)
 
 # credits
 live2d model: [Tianyelulu](https://tianyelulu.booth.pm)

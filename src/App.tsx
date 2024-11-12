@@ -1,14 +1,10 @@
 import "regenerator-runtime/runtime"; // https://github.com/JamesBrill/react-speech-recognition/issues/110#issuecomment-1898624289
 import { useEffect, useRef, useState } from "react";
 import { Live2DModel, MotionPriority } from "pixi-live2d-display-lipsyncpatch";
-import textToSpeech from "./models/tts/textToSpeech";
-import LLMChat from "./models/llm/LLMChat";
+import LLMChatOpenAI from "./models/llm/LLMChatOpenAI.ts";
 import { addOrChangeSubtitle } from "./models/live2d/functions/subtitle.ts";
 import loadModel from "./models/live2d/functions/loadModel";
 import autoWink from "./models/live2d/expression/autowink.ts";
-import { Stream } from "openai/streaming.mjs";
-import { ChatCompletionChunk } from "openai/resources/index.mjs";
-import AbortController from "abort-controller";
 import { loadModelTo } from "./models/live2d/functions/loadModelTo.ts";
 import {
   useBackendEndpoint,
@@ -16,36 +12,35 @@ import {
   useOpenaiEndpoint,
   useOpenaiModelName,
   useUseBackendLLM,
+  useUseWebLLM,
 } from "./models/appstore.ts";
 import Debug from "./components/debug.tsx";
 import Dictaphones, {
   listenContinuously,
+  listenOnce,
   stopListening,
 } from "./models/stt/Dictaphones.tsx";
 import Setting from "./components/setting.tsx";
 import { useSpeechRecognition } from "react-speech-recognition";
+import LLMChatWebLLM from "./models/llm/LLMChatWebLLM.ts";
+import { ChatCompletionChunk } from "@mlc-ai/web-llm";
+import { textToSpeech } from "./models/tts/textToSpeech.ts";
 
 export type contextType = {
-  role: string;
+  role: "user" | "assistant" | "system";
   content: string;
 };
 
 let userSpeaking = false;
 const reader: {
-  stream: Stream<ChatCompletionChunk> | null;
-  controller: AbortController | null;
-} = { stream: null, controller: null };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  stream: any;
+  interruptGenerate: () => void;
+} = { stream: null, interruptGenerate: () => {} };
 
 function addToContext(
   text: string,
-  setContext: (
-    value: React.SetStateAction<
-      {
-        role: string;
-        content: string;
-      }[]
-    >
-  ) => void
+  setContext: (value: React.SetStateAction<contextType[]>) => void
 ) {
   setContext((context) => {
     const lastContent = JSON.parse(JSON.stringify(context[context.length - 1]));
@@ -68,20 +63,40 @@ function App() {
   const [debugMode, setDebugMode] = useState(false);
   const [showSetting, setShowSetting] = useState(false);
   const [showContext, setShowContext] = useState(false);
+  const [chat, setChat] = useState<LLMChatWebLLM | LLMChatOpenAI | null>(null);
 
   const [backendEndpoint] = useBackendEndpoint();
   const [useBackendLLM] = useUseBackendLLM();
+  const [useWebLLM] = useUseWebLLM();
   const [openaiEndpoint] = useOpenaiEndpoint();
   const [openaiApikey] = useOpenaiApikey();
   const [openaiModelName] = useOpenaiModelName();
   const { listening, isMicrophoneAvailable, resetTranscript } =
     useSpeechRecognition();
 
-  const chat = new LLMChat(
+  // load chat engine
+  useEffect(() => {
+    setChat(
+      useWebLLM
+        ? new LLMChatWebLLM("")
+        : new LLMChatOpenAI(
+            openaiApikey,
+            openaiModelName,
+            useBackendLLM ? backendEndpoint + "/llm" : openaiEndpoint
+          )
+    );
+
+    return () => {
+      setChat(null);
+    };
+  }, [
+    backendEndpoint,
     openaiApikey,
+    openaiEndpoint,
     openaiModelName,
-    useBackendLLM ? backendEndpoint + "/llm" : openaiEndpoint
-  );
+    useBackendLLM,
+    useWebLLM,
+  ]);
 
   // load model when init
   useEffect(() => {
@@ -109,27 +124,23 @@ function App() {
     setSubtitle("-- touch anywhere to start --");
   }, [model]);
 
+  // change subtitle by context
   useEffect(() => {
     return setSubtitle(context[context.length - 1].content);
   }, [context]);
 
+  // set subtitle directly
   useEffect(() => {
     return addOrChangeSubtitle(subtitle);
   }, [subtitle]);
 
   // after user speak
-  async function handleSpeechRecognized(
-    context: {
-      role: string;
-      content: string;
-    }[]
-  ) {
-    console.log("handleSpeechRecognized", context);
+  async function handleSpeechRecognized(context: contextType[]) {
     userSpeaking = false;
-    if (!model) return;
-    const { stream, controller } = await chat.ask(context);
+    if (!model || !chat) return;
+    const { stream, interruptGenerate } = await chat.ask(context);
     reader.stream = stream;
-    reader.controller = controller;
+    reader.interruptGenerate = interruptGenerate;
     setContext((context) => [...context, { role: "assistant", content: "" }]);
     let currentSentence = "";
     for await (const chunk of reader.stream) {
@@ -139,32 +150,31 @@ function App() {
         reader.stream = null;
         break;
       }
+      if (!llmResponse) continue;
       currentSentence += llmResponse;
       if (/[.,!?]$/.test(currentSentence)) {
         addToContext(currentSentence, setContext);
         const data = await textToSpeech(currentSentence, "tts");
-        const url = await data.text();
-        await handleSpeak(url, model);
+        await handleSpeak(data, model);
         currentSentence = "";
       }
     }
     if (reader.stream && currentSentence !== "") {
       addToContext(currentSentence, setContext);
       const data = await textToSpeech(currentSentence, "tts");
-      const url = await data.text();
-      await handleSpeak(url, model);
+      await handleSpeak(data, model);
     }
     reader.stream = null;
   }
 
   // when user speak break the ai speak
-  async function handleUserSpeaking(_text: string) {
+  async function handleUserSpeaking(_text: string = "") {
     if (!model) return;
     userSpeaking = true;
     model.stopSpeaking();
     if (reader.stream) {
       addToContext("[break by user]", setContext);
-      if (reader.controller) reader.controller.abort();
+      if (reader.interruptGenerate) reader.interruptGenerate();
       reader.stream = null;
     }
   }
@@ -174,8 +184,7 @@ function App() {
     if (model === null || model === undefined) {
       return;
     }
-    // const audio_link =
-    //   "https://cdn.jsdelivr.net/gh/RaSan147/pixi-live2d-display@v1.0.3/playground/test.mp3"; // 音频链接地址 [可选参数，可以为null或空] [相对或完整url路径] [mp3或wav文件]
+
     const volume = 1; // 声音大小 [可选参数，可以为null或空][0.0-1.0]
     const expression = undefined; // 模型表情 [可选参数，可以为null或空] [index | expression表情名称]
     const resetExpression = true; // 是否在动画结束后将表情expression重置为默认值 [可选参数，可以为null或空] [true | false] [default: true]
@@ -196,7 +205,6 @@ function App() {
       }
     ) {
       return new Promise<void>((resolve, reject) => {
-        console.log("model start speak");
         model
           .motion("Speak", undefined, MotionPriority.FORCE)
           .catch((e) => console.error(e));
@@ -233,12 +241,36 @@ function App() {
     // });
   }
 
+  // user click screen
   function handleClickScreen() {
+    if (chat instanceof LLMChatWebLLM) {
+      if (chat.getInitStatus() === "not start") {
+        const answer = confirm(
+          "webLLM need to load at every time, first time may need some time to download model(~1.5G). load now?"
+        );
+        if (answer) {
+          const timer = setInterval(() => {
+            setSubtitle(chat.initProgress?.text || "webLLM loading");
+          }, 1000);
+          chat.init().then(() => {
+            alert("webLLM loaded");
+            clearInterval(timer);
+            setSubtitle("");
+          });
+        }
+        return;
+      } else if (chat.getInitStatus() === "working") {
+        alert("webLLM loading: " + chat.initProgress?.text);
+        return;
+      }
+    }
     if (listening) {
       stopListening();
       setSubtitle("-- stop listening... --");
     } else {
-      listenContinuously();
+      listenOnce();
+      // listenContinuously();
+      handleUserSpeaking("");
       setSubtitle("-- start listening... --");
     }
   }
@@ -269,6 +301,7 @@ function App() {
         }}
       />
 
+      {/* Setting */}
       <label>
         <input
           type="checkbox"
@@ -279,6 +312,7 @@ function App() {
       </label>
       {showSetting && <Setting />}
 
+      {/* Debug */}
       <label>
         <input
           type="checkbox"
@@ -289,6 +323,7 @@ function App() {
       </label>
       {debugMode && <Debug model={model} handleSpeak={handleSpeak} />}
 
+      {/* Show context log */}
       <label>
         <input
           type="checkbox"

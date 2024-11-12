@@ -1,6 +1,6 @@
 import { useRef } from "react";
-import textToSpeech from "../models/tts/textToSpeech";
 import { Live2DModel, InternalModel } from "pixi-live2d-display-lipsyncpatch";
+import { textToSpeech } from "../models/tts/textToSpeech";
 
 export default function Debug({
   model,
@@ -20,8 +20,7 @@ export default function Debug({
               className="bg-gray-200 rounded-sm"
               onClick={async () => {
                 const data = await textToSpeech("hello word", "tts");
-                const url = await data.text();
-                handleSpeak(url, model);
+                handleSpeak(data, model);
               }}
             >
               test speaking

@@ -1,7 +1,8 @@
 import OpenAI from "openai";
 import AbortController from "abort-controller";
+import { contextType } from "../../App";
 
-export default class LLMChat {
+export default class LLMChatOpenAI {
   private apiKey: string;
   private modelName: string;
   private apiBase: string;
@@ -19,10 +20,7 @@ export default class LLMChat {
   }
 
   async ask(
-    context: {
-      role: string;
-      content: string;
-    }[]
+    context: contextType[]
   ) {
     const data = {
       model: this.modelName,
@@ -43,6 +41,8 @@ export default class LLMChat {
       },
     });
 
-    return { stream, controller };
+    const interruptGenerate = ()=>{controller.abort()}
+
+    return { stream, interruptGenerate };
   }
 }

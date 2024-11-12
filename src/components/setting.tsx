@@ -4,11 +4,13 @@ import {
   useOpenaiEndpoint,
   useOpenaiModelName,
   useUseBackendLLM,
+  useUseWebLLM,
 } from "../models/appstore";
 
 export default function Setting() {
   const [backendEndpoint, setBackendEndpoint] = useBackendEndpoint();
   const [useBackendLLM, setUseBackendLLM] = useUseBackendLLM();
+  const [useWebLLM, setUseWebLLM] = useUseWebLLM();
   const [openaiEndpoint, setOpenaiEndpoint] = useOpenaiEndpoint();
   const [openaiApikey, setOpenaiApikey] = useOpenaiApikey();
   const [openaiModelName, setOpenaiModelName] = useOpenaiModelName();
@@ -33,11 +35,26 @@ export default function Setting() {
             className="bg-gray-200"
             type="checkbox"
             checked={useBackendLLM}
-            onChange={(e) => setUseBackendLLM(e.target.checked)}
+            onChange={(e) => {
+              setUseBackendLLM(e.target.checked);
+              if (e.target.checked) setUseWebLLM(false);
+            }}
           />
         </label>
-
+        <br />
         {!useBackendLLM && (
+          <label>
+            use webLLM
+            <input
+              className="bg-gray-200"
+              type="checkbox"
+              checked={useWebLLM}
+              onChange={(e) => setUseWebLLM(e.target.checked)}
+            />
+          </label>
+        )}
+
+        {!useBackendLLM && !useWebLLM && (
           <>
             <br />
             <label>
@@ -62,15 +79,17 @@ export default function Setting() {
           />
         </label>
         <br />
-        <label>
-          OpenAI model name:
-          <input
-            className="bg-gray-200"
-            type="text"
-            value={openaiModelName}
-            onChange={(e) => setOpenaiModelName(e.target.value)}
-          />
-        </label>
+        {!useWebLLM && (
+          <label>
+            OpenAI model name:
+            <input
+              className="bg-gray-200"
+              type="text"
+              value={openaiModelName}
+              onChange={(e) => setOpenaiModelName(e.target.value)}
+            />
+          </label>
+        )}
       </form>
     </div>
   );
