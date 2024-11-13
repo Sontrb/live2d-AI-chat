@@ -1,14 +1,12 @@
-# live2d chat
-
 Talk with a live2d model.
 
-Run locally in the browser or using backend proxy connection openai, Ollama etc.
+Run locally in the browser or using backend proxy connection Openai, Ollama etc.
 
-Try it online [https://live2d-ai-chat.hitorisama.org/]
+Try it online https://live2d-ai-chat.hitorisama.org/
 
 ![image](https://github.com/user-attachments/assets/d5185348-a251-4ff8-aa3e-e2ffcaa03bed)
 
-# feature
+# Feature
 
 1. show live2d model 🆗
 2. auto change expression of model
@@ -25,7 +23,7 @@ Try it online [https://live2d-ai-chat.hitorisama.org/]
 
 # how to develop?
 
-1. install [ollama](https://ollama.com/) and pull llama3.1 model (you can change the model in src/config.ts)
+1. install [ollama](https://ollama.com/) and pull a model you like
 2. install nodejs, pnpm, bun(optional)
 3. git clone https://github.com/zoollcar/live2d-AI-chat
 4. cd live2d-AI-chat & pnpm install & cd backend & pnpm install
