@@ -24,21 +24,24 @@ export default class LLMChatWebLLM {
 
   async init() {
     // This is an asynchronous call and can take a long time to finish
+    // models are https://github.com/mlc-ai/web-llm/blob/main/src/config.ts
     this.initStatus = "working";
-    const maxStorageBufferBindingSize =
-      await this.client.getMaxStorageBufferBindingSize();
-    console.log(maxStorageBufferBindingSize);
-    let selectedModel = "RedPajama-INCITE-Chat-3B-v1-q4f16_1-1k";
-    if (maxStorageBufferBindingSize >= 2147480000) {
-      // ~2G
-      selectedModel = "Llama-3.2-3B-Instruct-q4f16_1-MLC";
-    }
     try {
+      const maxStorageBufferBindingSize =
+        await this.client.getMaxStorageBufferBindingSize();
+      // alert(maxStorageBufferBindingSize);
+      let selectedModel = "SmolLM2-135M-Instruct-q0f32-MLC";
+      if (maxStorageBufferBindingSize >= 1073741800) {
+        // ~1G
+        selectedModel = "Llama-3.2-3B-Instruct-q4f16_1-MLC";
+      }
+      console.log(`webLLM: select ${selectedModel}`);
       await this.client.reload(selectedModel);
       this.initStatus = "done";
     } catch (e) {
       this.initStatus = "error";
       this.initProgress = (e as Error).message;
+      alert("Error: " + (e as Error).message);
     }
   }
 

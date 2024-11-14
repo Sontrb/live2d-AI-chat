@@ -246,16 +246,16 @@ function App() {
     if (chat instanceof LLMChatWebLLM) {
       if (chat.getInitStatus() === "not start") {
         const answer = confirm(
-          "webLLM need to load at every time, first time may need some time to download model(~1.5G). load now?"
+          "webLLM need to load every time, first time need some time to download model(~1.5G(PC)/~800MB(phone)). load now?"
         );
         if (answer) {
           const timer = setInterval(() => {
             setSubtitle(chat.initProgress || "webLLM loading");
           }, 1000);
           chat.init().then(() => {
-            alert("webLLM loaded");
             clearInterval(timer);
-            setSubtitle("");
+            if (chat.getInitStatus() === "done") setSubtitle("webLLM loaded");
+            else setSubtitle("webLLM error");
           });
         }
         return;

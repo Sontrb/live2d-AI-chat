@@ -1,6 +1,5 @@
 import { getBackendEndpoint } from "../appstore";
 
-// const vitsWebWorker = new Worker("./vitsWeb");
 const vitsWebWorker = new Worker(new URL("./vitsWeb.ts", import.meta.url), {
   type: "module", // Specify that the worker is a module
 });
