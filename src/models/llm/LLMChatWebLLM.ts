@@ -1,38 +1,45 @@
-import {
-  CreateMLCEngine,
-  InitProgressReport,
-  MLCEngine,
-  prebuiltAppConfig,
-} from "@mlc-ai/web-llm";
-import AbortController from "abort-controller";
+import { InitProgressReport, MLCEngine } from "@mlc-ai/web-llm";
 import { contextType } from "../../App";
 
 export default class LLMChatWebLLM {
   private modelName: string;
   private client: MLCEngine;
-  private initStatus: "not start" | "working" | "done";
-  public initProgress: InitProgressReport | null;
+  private initStatus: "not start" | "working" | "done" | "error";
+  public initProgress: null | string;
 
   constructor(modelName: string) {
     // Callback function to update model loading progress
     const initProgressCallback = (initProgress: InitProgressReport) => {
       console.log(initProgress);
-      this.initProgress = initProgress;
+      this.initProgress = initProgress.text;
     };
     this.initStatus = "not start";
     this.initProgress = null;
-    const selectedModel = "Llama-3.2-3B-Instruct-q4f16_1-MLC";
     this.client = new MLCEngine({
       initProgressCallback: initProgressCallback,
+      logLevel: "DEBUG",
     });
-    this.modelName = selectedModel;
+    this.modelName = modelName; // not using
   }
 
   async init() {
     // This is an asynchronous call and can take a long time to finish
     this.initStatus = "working";
-    await this.client.reload(this.modelName);
-    this.initStatus = "done";
+    const maxStorageBufferBindingSize =
+      await this.client.getMaxStorageBufferBindingSize();
+    console.log(maxStorageBufferBindingSize);
+    let selectedModel = "RedPajama-INCITE-Chat-3B-v1-q4f16_1-1k";
+    if (maxStorageBufferBindingSize >= 2147480000) {
+      // ~2G
+      selectedModel = "Llama-3.2-3B-Instruct-q4f16_1-MLC";
+    }
+    try {
+      await this.client.reload(selectedModel);
+      this.initStatus = "done";
+    } catch (e) {
+      this.initStatus = "error";
+      this.initProgress = (e as Error).message;
+    }
   }
 
   public getInitStatus() {

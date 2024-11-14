@@ -250,7 +250,7 @@ function App() {
         );
         if (answer) {
           const timer = setInterval(() => {
-            setSubtitle(chat.initProgress?.text || "webLLM loading");
+            setSubtitle(chat.initProgress || "webLLM loading");
           }, 1000);
           chat.init().then(() => {
             alert("webLLM loaded");
@@ -260,7 +260,7 @@ function App() {
         }
         return;
       } else if (chat.getInitStatus() === "working") {
-        alert("webLLM loading: " + chat.initProgress?.text);
+        alert("webLLM loading: " + chat.initProgress);
         return;
       }
     }
