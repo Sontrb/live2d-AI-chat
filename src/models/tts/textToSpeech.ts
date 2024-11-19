@@ -4,7 +4,7 @@ const vitsWebWorker = new Worker(new URL("./vitsWeb.ts", import.meta.url), {
   type: "module", // Specify that the worker is a module
 });
 
-export async function textToSpeech(
+export async function textToSpeechWeb(
   input: string,
   model = "tts"
 ): Promise<string> {
@@ -37,6 +37,7 @@ export async function textToSpeechUseBackend(input: string, model = "tts") {
 
   return await data.text();
 }
+
 function adjustPitch(blob: Blob, pitchShift: number): Promise<Blob> {
   return new Promise((resolve, reject) => {
     const audioContext = new window.AudioContext();

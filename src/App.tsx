@@ -12,6 +12,7 @@ import {
   useOpenaiEndpoint,
   useOpenaiModelName,
   useUseBackendLLM,
+  useUseBackendTTS,
   useUseWebLLM,
 } from "./models/appstore.ts";
 import Debug from "./components/debug.tsx";
@@ -24,7 +25,12 @@ import Setting from "./components/setting.tsx";
 import { useSpeechRecognition } from "react-speech-recognition";
 import LLMChatWebLLM from "./models/llm/LLMChatWebLLM.ts";
 import { ChatCompletionChunk } from "@mlc-ai/web-llm";
-import { textToSpeech } from "./models/tts/textToSpeech.ts";
+import { defaultContext, promptHint } from "./models/prompt/static.ts";
+import { findTopic } from "./models/prompt/findTopic.ts";
+import {
+  textToSpeechUseBackend,
+  textToSpeechWeb,
+} from "./models/tts/textToSpeech.ts";
 
 export type contextType = {
   role: "user" | "assistant" | "system";
@@ -52,21 +58,19 @@ function addToContext(
 function App() {
   const [model, setModel] = useState<Live2DModel | null>(null);
   const stage = useRef<HTMLDivElement>(null);
-  const [context, setContext] = useState<contextType[]>([
-    {
-      role: "system",
-      content:
-        "You are a AI for chatting. Your job is to entertain users. let's make some short, funny, and humorous conversation",
-    },
-  ]);
+  const [context, setContext] = useState<contextType[]>(defaultContext);
   const [subtitle, setSubtitle] = useState("");
   const [debugMode, setDebugMode] = useState(false);
   const [showSetting, setShowSetting] = useState(false);
   const [showContext, setShowContext] = useState(false);
   const [chat, setChat] = useState<LLMChatWebLLM | LLMChatOpenAI | null>(null);
+  const TTS = useRef<
+    ((input: string, model?: string) => Promise<string>) | null
+  >(null);
 
   const [backendEndpoint] = useBackendEndpoint();
   const [useBackendLLM] = useUseBackendLLM();
+  const [useBackendTTS] = useUseBackendTTS();
   const [useWebLLM] = useUseWebLLM();
   const [openaiEndpoint] = useOpenaiEndpoint();
   const [openaiApikey] = useOpenaiApikey();
@@ -85,9 +89,11 @@ function App() {
             useBackendLLM ? backendEndpoint + "/llm" : openaiEndpoint
           )
     );
+    TTS.current = useBackendTTS ? textToSpeechUseBackend : textToSpeechWeb;
 
     return () => {
       setChat(null);
+      TTS.current = null;
     };
   }, [
     backendEndpoint,
@@ -95,6 +101,7 @@ function App() {
     openaiEndpoint,
     openaiModelName,
     useBackendLLM,
+    useBackendTTS,
     useWebLLM,
   ]);
 
@@ -135,10 +142,14 @@ function App() {
   }, [subtitle]);
 
   // after user speak
-  async function handleSpeechRecognized(context: contextType[]) {
+  async function handleSpeechRecognized(text: string) {
+    const newContext: contextType[] = [
+      ...context,
+      { role: "user", content: promptHint + text },
+    ];
     userSpeaking = false;
     if (!model || !chat) return;
-    const { stream, interruptGenerate } = await chat.ask(context);
+    const { stream, interruptGenerate } = await chat.ask(newContext);
     reader.stream = stream;
     reader.interruptGenerate = interruptGenerate;
     setContext((context) => [...context, { role: "assistant", content: "" }]);
@@ -154,21 +165,30 @@ function App() {
       currentSentence += llmResponse;
       if (/[.,!?]$/.test(currentSentence)) {
         addToContext(currentSentence, setContext);
-        const data = await textToSpeech(currentSentence, "tts");
+        console.log(TTS);
+        if (!TTS.current) {
+          alert("please wait for init");
+          return;
+        }
+        const data = await TTS.current(currentSentence, "tts");
         await handleSpeak(data, model);
         currentSentence = "";
       }
     }
     if (reader.stream && currentSentence !== "") {
       addToContext(currentSentence, setContext);
-      const data = await textToSpeech(currentSentence, "tts");
+      if (!TTS) {
+        alert("please wait for init");
+        return;
+      }
+      const data = await TTS.current(currentSentence, "tts");
       await handleSpeak(data, model);
     }
     reader.stream = null;
   }
 
   // when user speak break the ai speak
-  async function handleUserSpeaking(_text: string = "") {
+  async function handleUserSpeaking() {
     if (!model) return;
     userSpeaking = true;
     model.stopSpeaking();
@@ -264,14 +284,18 @@ function App() {
         return;
       }
     }
-    if (listening) {
-      stopListening();
-      setSubtitle("-- stop listening... --");
+    if (context.length === defaultContext.length) {
+      handleSpeechRecognized(findTopic());
     } else {
-      listenOnce();
-      // listenContinuously();
-      handleUserSpeaking("");
-      setSubtitle("-- start listening... --");
+      if (listening) {
+        stopListening();
+        setSubtitle("-- stop listening... --");
+      } else {
+        listenOnce();
+        // listenContinuously();
+        handleUserSpeaking();
+        setSubtitle("-- start listening... --");
+      }
     }
   }
 
@@ -294,10 +318,10 @@ function App() {
             ...context,
             { role: "user", content: text },
           ]);
-          handleSpeechRecognized([...context, { role: "user", content: text }]);
+          handleSpeechRecognized(text);
         }}
         onUserSpeaking={(text: string) => {
-          handleUserSpeaking(text);
+          handleUserSpeaking();
         }}
       />
 

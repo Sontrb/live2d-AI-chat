@@ -4,12 +4,14 @@ import {
   useOpenaiEndpoint,
   useOpenaiModelName,
   useUseBackendLLM,
+  useUseBackendTTS,
   useUseWebLLM,
 } from "../models/appstore";
 
 export default function Setting() {
   const [backendEndpoint, setBackendEndpoint] = useBackendEndpoint();
   const [useBackendLLM, setUseBackendLLM] = useUseBackendLLM();
+  const [useBackendTTS, setUseBackendTTS] = useUseBackendTTS();
   const [useWebLLM, setUseWebLLM] = useUseWebLLM();
   const [openaiEndpoint, setOpenaiEndpoint] = useOpenaiEndpoint();
   const [openaiApikey, setOpenaiApikey] = useOpenaiApikey();
@@ -38,6 +40,18 @@ export default function Setting() {
             onChange={(e) => {
               setUseBackendLLM(e.target.checked);
               if (e.target.checked) setUseWebLLM(false);
+            }}
+          />
+        </label>
+        <br />
+        <label>
+          use backendTTS?:
+          <input
+            className="bg-gray-200"
+            type="checkbox"
+            checked={useBackendTTS}
+            onChange={(e) => {
+              setUseBackendTTS(e.target.checked);
             }}
           />
         </label>

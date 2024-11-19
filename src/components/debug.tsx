@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import { Live2DModel, InternalModel } from "pixi-live2d-display-lipsyncpatch";
-import { textToSpeech } from "../models/tts/textToSpeech";
+import { textToSpeechWeb, textToSpeechUseBackend } from "../models/tts/textToSpeech";
 
 export default function Debug({
   model,
@@ -19,11 +19,20 @@ export default function Debug({
             <button
               className="bg-gray-200 rounded-sm"
               onClick={async () => {
-                const data = await textToSpeech("hello word", "tts");
+                const data = await textToSpeechWeb("hello word", "tts");
                 handleSpeak(data, model);
               }}
             >
-              test speaking
+              test speaking(web)
+            </button>
+            <button
+              className="bg-gray-200 rounded-sm"
+              onClick={async () => {
+                const data = await textToSpeechUseBackend("hello word", "tts");
+                handleSpeak(data, model);
+              }}
+            >
+              test speaking(backend)
             </button>
             <button
               className="bg-gray-200 rounded-sm"

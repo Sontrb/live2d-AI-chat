@@ -19,14 +19,12 @@ export default class LLMChatOpenAI {
     });
   }
 
-  async ask(
-    context: contextType[]
-  ) {
+  async ask(context: contextType[]) {
     const data = {
       model: this.modelName,
       messages: context,
       stream: true,
-      max_completion_tokens: 1024,
+      max_tokens: 200,
       temperature: 0.75,
     };
 
@@ -41,7 +39,9 @@ export default class LLMChatOpenAI {
       },
     });
 
-    const interruptGenerate = ()=>{controller.abort()}
+    const interruptGenerate = () => {
+      controller.abort();
+    };
 
     return { stream, interruptGenerate };
   }

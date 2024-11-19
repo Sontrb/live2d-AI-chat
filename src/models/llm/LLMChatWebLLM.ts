@@ -54,7 +54,7 @@ export default class LLMChatWebLLM {
       // model: this.modelName,
       messages: context,
       stream: true,
-      max_completion_tokens: 1024,
+      max_tokens: 200,
       temperature: 0.75,
     };
 
