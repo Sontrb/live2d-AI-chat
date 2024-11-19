@@ -177,7 +177,7 @@ function App() {
     }
     if (reader.stream && currentSentence !== "") {
       addToContext(currentSentence, setContext);
-      if (!TTS) {
+      if (!TTS.current) {
         alert("please wait for init");
         return;
       }
