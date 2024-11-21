@@ -5,7 +5,10 @@ import LLMChatOpenAI from "./models/llm/LLMChatOpenAI.ts";
 import { addOrChangeSubtitle } from "./models/live2d/functions/subtitle.ts";
 import loadModel from "./models/live2d/functions/loadModel";
 import autoWink from "./models/live2d/expression/autowink.ts";
-import { loadModelTo } from "./models/live2d/functions/loadModelTo.ts";
+import {
+  loadModelTo,
+  modelShowsUp,
+} from "./models/live2d/functions/loadModelTo.ts";
 import {
   useBackendEndpoint,
   useOpenaiApikey,
@@ -57,13 +60,15 @@ function addToContext(
 
 function App() {
   const [model, setModel] = useState<Live2DModel | null>(null);
-  const stage = useRef<HTMLDivElement>(null);
+
   const [context, setContext] = useState<contextType[]>(defaultContext);
   const [subtitle, setSubtitle] = useState("");
   const [debugMode, setDebugMode] = useState(false);
   const [showSetting, setShowSetting] = useState(false);
   const [showContext, setShowContext] = useState(false);
   const [chat, setChat] = useState<LLMChatWebLLM | LLMChatOpenAI | null>(null);
+
+  const stage = useRef<HTMLDivElement>(null);
   const TTS = useRef<
     ((input: string, model?: string) => Promise<string>) | null
   >(null);
@@ -77,6 +82,8 @@ function App() {
   const [openaiModelName] = useOpenaiModelName();
   const { listening, isMicrophoneAvailable, resetTranscript } =
     useSpeechRecognition();
+
+  const firstTime = context.length === defaultContext.length;
 
   // load chat engine
   useEffect(() => {
@@ -284,8 +291,12 @@ function App() {
         return;
       }
     }
-    if (context.length === defaultContext.length) {
-      handleSpeechRecognized(findTopic());
+    if (firstTime) {
+      if (model) {
+        setSubtitle("");
+        modelShowsUp(model);
+        handleSpeechRecognized(findTopic());
+      }
     } else {
       if (listening) {
         stopListening();
