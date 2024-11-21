@@ -17,7 +17,7 @@ Try it online https://live2d-ai-chat.hitorisama.org/
 7. subtitle of AI and User 🆗
 8. long-term memory
 9. Custom chat model
-10. Speaking first / Find topics
+10. Speaking first / Find topics 🆗
 11. changeable model, expression and motion
 12. other function: playing games, singing，searching google, etc.
 
