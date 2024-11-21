@@ -5,6 +5,9 @@ src-electron
 backend/public/sound
 .timetracker
 
+# ts
+*.tsbuildinfo
+
 # Logs
 logs
 *.log
