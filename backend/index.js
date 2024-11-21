@@ -19,6 +19,7 @@ app.get("/", (req, res) => {
 });
 
 app.post("/tts", async (req, res) => {
+  console.log(`request path: ${req.url} -- "${req.body.input}"`);
   let data = await textToSpeech(req.body.input);
   res.send(`${data}`);
 });
