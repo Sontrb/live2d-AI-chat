@@ -2,6 +2,7 @@ import express from "express";
 import { textToSpeech } from "./models/textToSpeech.js";
 import proxy from "express-http-proxy";
 import cors from "cors"; // https://expressjs.com/en/resources/middleware/cors.html
+import 'dotenv/config'
 
 const app = express();
 const port = process.env.PORT || 61234;
@@ -33,7 +34,7 @@ app.post(
     proxyReqPathResolver: function (req) {
       console.log(`request path: ${req.url}`);
 
-      return `/v1${req.url.replace('/llm','')}`;
+      return `/v1${req.url.replace('/llm', '')}`;
     }
   })
 );
